@@ -32,7 +32,7 @@
 				<string>http</string>
 				<string>https</string>
 				<string>unilinks</string>
-				<string>ENCODED APP ID</string>
+				<string>com.googleusercontent.apps.63168540332-b8snl3ggfeaosrq8acqc11npalhouus5</string>
 			</array>
 		</dict>
 	</array>
@@ -46,10 +46,10 @@
 		<string>itms-beta</string>
 		<string>itms</string>
 		<string>unilinks</string>
-		<string>YOUR WEB VERSION URL</string>
+		<string>ebrokerweb.wrteam.me</string>
 	</array>
 	<key>GADApplicationIdentifier</key>
-	<string>ADMOB APP ID</string>
+	<string>APP ID HERE</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>

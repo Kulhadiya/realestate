@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -33,35 +32,27 @@ class DeleteAccountCubit extends Cubit<DeleteAccountState> {
 
   Future<String> deleteAccount(BuildContext context) async {
     String message = '';
-    try {
-      /* User? currentUser = await FirebaseAuth.instance.currentUser;
+
+    /* User? currentUser = await FirebaseAuth.instance.currentUser;
       if (currentUser != null) {
         await currentUser.reload();
       }*/
-      await FirebaseAuth.instance.currentUser!.delete().then((value) async {
-        Map<String, String> parameter = {Api.userid: HiveUtils.getUserId()!};
+    Map<String, String> parameter = {Api.userid: HiveUtils.getUserId()!};
 
-        var response =
-            await Api.post(url: Api.apiDeleteUser, parameter: parameter);
-        User? user = FirebaseAuth.instance.currentUser;
-        await user?.delete();
-        if (response["error"]) {
-          throw CustomException(response["message"]);
-        } else {
-          Future.delayed(
-            Duration.zero,
-            () {
-              HiveUtils.logoutUser(context, onLogout: () {}, isRedirect: false);
-            },
-          );
-          message = response['message'];
-        }
-      });
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'requires-recent-login') {
-        // throw CustomException(Strings.userDeleteErrorMessage);
-      }
+    var response = await Api.post(url: Api.apiDeleteUser, parameter: parameter);
+
+    if (response["error"]) {
+      throw CustomException(response["message"]);
+    } else {
+      Future.delayed(
+        Duration.zero,
+        () {
+          HiveUtils.logoutUser(context, onLogout: () {}, isRedirect: false);
+        },
+      );
+      message = response['message'];
     }
+
     return message;
   }
 }

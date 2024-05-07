@@ -1,8 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../Repositories/property_repository.dart';
+import '../../helper/filter.dart';
 import '../../model/data_output.dart';
 import '../../model/property_model.dart';
+import '../../repositories/property_repository.dart';
 
 abstract class FetchPropertyFromCategoryState {}
 
@@ -54,8 +55,11 @@ class FetchPropertyFromCategoryCubit
 
   final PropertyRepository _propertyRepository = PropertyRepository();
 
-  Future<void> fetchPropertyFromCategory(int categoryId,
-      {bool? showPropertyType}) async {
+  Future<void> fetchPropertyFromCategory(
+    int categoryId, {
+    FilterApply? filter,
+    bool? showPropertyType,
+  }) async {
     try {
       emit(FetchPropertyFromCategoryInProgress());
 
@@ -64,6 +68,7 @@ class FetchPropertyFromCategoryCubit
         id: categoryId,
         offset: 0,
         showPropertyType: showPropertyType,
+        filter: filter,
       );
       emit(
         FetchPropertyFromCategorySuccess(
@@ -75,7 +80,7 @@ class FetchPropertyFromCategoryCubit
           categoryId: categoryId,
         ),
       );
-    } catch (e) {
+    } catch (e, st) {
       emit(
         FetchPropertyFromCategoryFailure(
           e,

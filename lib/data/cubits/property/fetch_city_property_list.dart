@@ -1,9 +1,5 @@
-import 'package:ebroker/data/model/property_model.dart';
-
-import '../../../Ui/screens/proprties/viewAll.dart';
 import '../../../exports/main_export.dart';
-import '../../Repositories/property_repository.dart';
-import '../../model/data_output.dart';
+import '../../../ui/screens/proprties/viewAll.dart';
 
 abstract class FetchCityPropertyListState {}
 

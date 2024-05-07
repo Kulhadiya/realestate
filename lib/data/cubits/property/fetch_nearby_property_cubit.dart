@@ -1,14 +1,14 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-import 'package:ebroker/Ui/screens/proprties/viewAll.dart';
+import 'package:ebroker/ui/screens/proprties/viewAll.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../settings.dart';
 import '../../../utils/Network/networkAvailability.dart';
-import '../../Repositories/property_repository.dart';
 import '../../model/data_output.dart';
 import '../../model/property_model.dart';
+import '../../repositories/property_repository.dart';
 
 abstract class FetchNearbyPropertiesState {}
 

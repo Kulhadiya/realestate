@@ -1,3 +1,4 @@
+import 'package:ebroker/data/repositories/auth_repository.dart';
 import 'package:ebroker/utils/Extensions/extensions.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/adapters.dart';
@@ -105,6 +106,11 @@ class HiveUtils {
 
   static void setUserData(Map data) async {
     await Hive.box(HiveKeys.userDetailsBox).putAll(data);
+  }
+
+  static LoginType getUserLoginType() {
+    return LoginType.values.firstWhere((element) =>
+        element.name == Hive.box(HiveKeys.userDetailsBox).get("type"));
   }
 
   static dynamic getCityName() {

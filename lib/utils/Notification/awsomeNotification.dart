@@ -1,22 +1,11 @@
 // ignore_for_file: file_names
 
-import 'dart:async';
 import 'dart:math';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:ebroker/Ui/screens/chat/chat_screen.dart';
-import 'package:ebroker/app/routes.dart';
-import 'package:ebroker/data/Repositories/property_repository.dart';
-import 'package:ebroker/data/cubits/chatCubits/delete_message_cubit.dart';
-import 'package:ebroker/data/model/data_output.dart';
-import 'package:ebroker/data/model/property_model.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/ui/screens/chat/chat_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../data/cubits/chatCubits/load_chat_messages.dart';
-import '../constant.dart';
-import '../helper_utils.dart';
 
 class LocalAwsomeNotification {
   AwesomeNotifications notification = AwesomeNotifications();

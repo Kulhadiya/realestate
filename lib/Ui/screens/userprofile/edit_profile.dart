@@ -1,38 +1,17 @@
-import 'dart:io';
-
-import 'package:ebroker/Ui/screens/Personalized/personalized_property_screen.dart';
-import 'package:ebroker/Ui/screens/widgets/custom_text_form_field.dart';
-import 'package:ebroker/Ui/screens/widgets/image_cropper.dart';
-import 'package:ebroker/data/cubits/auth/auth_cubit.dart';
-import 'package:ebroker/data/cubits/property/fetch_most_viewed_properties_cubit.dart';
-import 'package:ebroker/data/cubits/property/fetch_nearby_property_cubit.dart';
-import 'package:ebroker/data/cubits/property/fetch_promoted_properties_cubit.dart';
-import 'package:ebroker/data/cubits/slider_cubit.dart';
-import 'package:ebroker/data/cubits/system/user_details.dart';
+import 'package:country_picker/country_picker.dart';
 import 'package:ebroker/data/helper/custom_exception.dart';
-import 'package:ebroker/data/helper/designs.dart';
 import 'package:ebroker/data/model/user_model.dart';
-import 'package:ebroker/utils/AppIcon.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/constant.dart';
-import 'package:ebroker/utils/hive_utils.dart';
-import 'package:ebroker/utils/responsiveSize.dart';
-import 'package:ebroker/utils/ui_utils.dart';
+import 'package:ebroker/data/repositories/auth_repository.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/ui/screens/widgets/bottom_sheets/choose_location_bottomsheet.dart';
+import 'package:ebroker/ui/screens/widgets/image_cropper.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../../app/routes.dart';
-import '../../../data/helper/widgets.dart';
-import '../../../data/model/google_place_model.dart';
-import '../../../utils/guestChecker.dart';
-import '../../../utils/helper_utils.dart';
 import '../../../utils/hive_keys.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/BottomSheets/choose_location_bottomsheet.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String from;
@@ -72,9 +51,14 @@ class UserProfileScreenState extends State<UserProfileScreen> {
   File? fileUserimg;
   bool isNotificationsEnabled = true;
   double? latitude, longitude;
+  late LoginType loginType;
+  String? selectedCountryCode = HiveUtils.getCountryCode();
+  List<Country> countryList = CountryService().getAll();
+
   @override
   void initState() {
     super.initState();
+    loginType = HiveUtils.getUserLoginType();
     if (widget.from == "login") {
       GuestChecker.set(isGuest: false);
     }
@@ -82,7 +66,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
     _state = HiveUtils.getStateName();
     country = HiveUtils.getCountryName();
     placeid = HiveUtils.getCityPlaceId() ?? "";
-    phoneController.text = _saperateNumber();
+    phoneController.text = _saperateNumber() ?? "";
     nameController.text = (HiveUtils.getUserDetails().name) ?? "";
     emailController.text = HiveUtils.getUserDetails().email ?? "";
     addressController.text = HiveUtils.getUserDetails().address ?? "";
@@ -93,27 +77,29 @@ class UserProfileScreenState extends State<UserProfileScreen> {
     _saperateNumber();
   }
 
-  String _saperateNumber() {
-    // FirebaseAuth.instance.currentUser.sendEmailVerification();
+  String? _saperateNumber() {
     String? mobile = HiveUtils.getUserDetails().mobile;
+
+    if (mobile == null || mobile.toString().isEmpty) {
+      return null;
+    }
 
     String? countryCode = HiveUtils.getCountryCode();
 
     int countryCodeLength = (countryCode?.length ?? 0);
 
-    String mobileNumber = mobile!.substring(countryCodeLength, mobile.length);
+    String? mobileNumber = mobile.substring(countryCodeLength, mobile.length);
 
-    mobileNumber = "+${countryCode!} $mobileNumber";
     return mobileNumber;
   }
 
   @override
   void dispose() {
-    super.dispose();
     phoneController.dispose();
     nameController.dispose();
     emailController.dispose();
     addressController.dispose();
+    super.dispose();
   }
 
   void _onTapChooseLocation() async {
@@ -138,9 +124,10 @@ class UserProfileScreenState extends State<UserProfileScreen> {
         return const ChooseLocatonBottomSheet();
       },
     );
+
     if (result != null) {
       GooglePlaceModel place = (result as GooglePlaceModel);
-      print("LATTTT is ${place.longitude}");
+
       latitude = double.parse(place.latitude);
       longitude = double.parse(place.longitude);
       city = place.city;
@@ -148,6 +135,32 @@ class UserProfileScreenState extends State<UserProfileScreen> {
       _state = place.state;
       placeid = place.placeId;
     }
+  }
+
+  _onTapCountryCode() {
+    showCountryPicker(
+      context: context,
+      showWorldWide: false,
+      showPhoneCode: true,
+      countryListTheme: CountryListThemeData(
+          borderRadius: BorderRadius.circular(11),
+          backgroundColor: context.color.backgroundColor,
+          inputDecoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              iconColor: context.color.tertiaryColor,
+              prefixIconColor: context.color.tertiaryColor,
+              focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: context.color.tertiaryColor)),
+              floatingLabelStyle: TextStyle(color: context.color.tertiaryColor),
+              labelText: "Search",
+              border: const OutlineInputBorder())),
+      onSelect: (Country value) {
+        // flagEmoji = value.flagEmoji;
+        // countryCode = value.phoneCode;
+        selectedCountryCode = value.phoneCode;
+        setState(() {});
+      },
+    );
   }
 
   @override
@@ -184,18 +197,30 @@ class UserProfileScreenState extends State<UserProfileScreen> {
                               controller: nameController,
                               validator: CustomTextFieldValidator.nullCheck,
                             ),
-                            buildTextField(
-                              context,
-                              title: "companyEmailLbl",
-                              controller: emailController,
-                              validator: CustomTextFieldValidator.email,
-                            ),
+                            buildTextField(context,
+                                title: "companyEmailLbl",
+                                controller: emailController,
+                                validator: CustomTextFieldValidator.email,
+                                readOnly: loginType != LoginType.phone
+                                    ? true
+                                    : false),
                             buildTextField(
                               context,
                               title: "phoneNumber",
+                              keyboard: TextInputType.phone,
+                              prefix: GestureDetector(
+                                onTap: _onTapCountryCode,
+                                child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text("+" "$selectedCountryCode ")),
+                              ),
                               controller: phoneController,
-                              validator: CustomTextFieldValidator.nullCheck,
-                              readOnly: true,
+                              formaters: [
+                                FilteringTextInputFormatter.digitsOnly
+                              ],
+                              validator: CustomTextFieldValidator.phoneNumber,
+                              readOnly:
+                                  loginType == LoginType.phone ? true : false,
                             ),
                             buildAddressTextField(
                               context,
@@ -292,12 +317,13 @@ class UserProfileScreenState extends State<UserProfileScreen> {
             child: Container(
               height: 55,
               decoration: BoxDecoration(
-                  color: context.color.textLightColor.withOpacity(00.01),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: context.color.borderColor,
-                    width: 1.5,
-                  )),
+                color: context.color.textLightColor.withOpacity(00.01),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: context.color.borderColor,
+                  width: 1.5,
+                ),
+              ),
               child: Row(
                 children: [
                   Padding(
@@ -398,7 +424,10 @@ class UserProfileScreenState extends State<UserProfileScreen> {
 
   Widget buildTextField(BuildContext context,
       {required String title,
+      List<TextInputFormatter>? formaters,
       required TextEditingController controller,
+      TextInputType? keyboard,
+      Widget? prefix,
       CustomTextFieldValidator? validator,
       bool? readOnly}) {
     return Column(
@@ -413,8 +442,12 @@ class UserProfileScreenState extends State<UserProfileScreen> {
         ),
         CustomTextFormField(
           controller: controller,
+          keyboard: keyboard,
           isReadOnly: readOnly,
           validator: validator,
+
+          prefix: prefix,
+          formaters: formaters, //
           // formaters: [FilteringTextInputFormatter.deny(RegExp(","))],
           fillColor: context.color.textLightColor.withOpacity(00.01),
         ),
@@ -555,7 +588,9 @@ class UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   process() async {
-    if (Constant.isDemoModeOn) {
+    if (Constant.isDemoModeOn &&
+        context.read<UserDetailsCubit>().state.user?.firebaseId ==
+            Constant.demoFirebaseID) {
       HelperUtils.showSnackBarMessage(
           context, UiUtils.translate(context, "thisActionNotValidDemo"));
       return;
@@ -566,6 +601,7 @@ class UserProfileScreenState extends State<UserProfileScreen> {
           name: nameController.text.trim(),
           email: emailController.text.trim(),
           fileUserimg: fileUserimg,
+          phone: "$selectedCountryCode${phoneController.text}",
           latitude: latitude,
           longitude: longitude,
           city: city,
@@ -573,8 +609,13 @@ class UserProfileScreenState extends State<UserProfileScreen> {
           country: country,
           address: addressController.text,
           notification: isNotificationsEnabled == true ? "1" : "0");
-
       Future.delayed(Duration.zero, () {
+        var result = response;
+        var data = result['data'];
+        data['countryCode'] = selectedCountryCode;
+
+        HiveUtils.setUserData(data);
+
         context
             .read<UserDetailsCubit>()
             .copy(UserModel.fromJson(response['data']));

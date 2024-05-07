@@ -1,5 +1,5 @@
-import 'package:ebroker/Ui/screens/widgets/blurred_dialoge_box.dart';
 import 'package:ebroker/data/cubits/Report/property_report_cubit.dart';
+import 'package:ebroker/ui/screens/widgets/blurred_dialoge_box.dart';
 import 'package:ebroker/utils/Extensions/extensions.dart';
 import 'package:ebroker/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +8,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../../../utils/AppIcon.dart';
 import '../../../../utils/guestChecker.dart';
-import '../../Report/report_property_screen.dart';
+import '../../report/report_property_screen.dart';
 
 class ReportPropertyButton extends StatefulWidget {
   final int propertyId;

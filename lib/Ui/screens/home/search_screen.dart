@@ -1,23 +1,8 @@
-import 'dart:async';
-
-import 'package:ebroker/Ui/screens/widgets/Erros/no_internet.dart';
-import 'package:ebroker/utils/AdMob/bannerAdLoadWidget.dart';
-import 'package:ebroker/utils/api.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/utils/admob/bannerAdLoadWidget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import '../../../app/routes.dart';
-import '../../../data/cubits/property/search_property_cubit.dart';
-import '../../../data/model/property_model.dart';
-import '../../../utils/AppIcon.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/helper_utils.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/Erros/something_went_wrong.dart';
-import 'Widgets/property_horizontal_card.dart';
+import '../../../data/helper/filter.dart';
 
 class SearchScreen extends StatefulWidget {
   final bool autoFocus;
@@ -53,6 +38,7 @@ class SearchScreenState extends State<SearchScreen>
   List<PropertyModel> propertylist = [];
   List idlist = [];
   Timer? _searchDelay;
+  FilterApply? selectedFilter;
   bool showContent = true;
   @override
   void initState() {
@@ -62,8 +48,9 @@ class SearchScreenState extends State<SearchScreen>
         Navigator.pushNamed(context, Routes.filterScreen);
       });
     }
-    // context.read<PropertyCubit>().fetchProperty(context, {});
-    context.read<SearchPropertyCubit>().searchProperty("", offset: 0);
+    context
+        .read<SearchPropertyCubit>()
+        .searchProperty("", offset: 0, filter: selectedFilter);
     searchController = TextEditingController();
     searchController.addListener(searchPropertyListener);
     controller = ScrollController()..addListener(pageScrollListen);
@@ -92,9 +79,8 @@ class SearchScreenState extends State<SearchScreen>
   void propertySearch() {
     // if (searchController.text.isNotEmpty) {
     if (previouseSearchQuery != searchController.text) {
-      context
-          .read<SearchPropertyCubit>()
-          .searchProperty(searchController.text, offset: 0);
+      context.read<SearchPropertyCubit>().searchProperty(searchController.text,
+          offset: 0, filter: selectedFilter);
       previouseSearchQuery = searchController.text;
     }
     // } else {
@@ -105,11 +91,16 @@ class SearchScreenState extends State<SearchScreen>
   Widget filterOptionsBtn() {
     return IconButton(
         onPressed: () {
+          print("Ok bro");
           Navigator.pushNamed(context, Routes.filterScreen).then((value) {
-            if (value == true && searchController.text != "") {
-              context
-                  .read<SearchPropertyCubit>()
-                  .searchProperty(searchController.text, offset: 0);
+            print("Filter value is $value");
+            if (value != null && searchController.text != "") {
+              print("Helo $value");
+              selectedFilter = value as FilterApply;
+              context.read<SearchPropertyCubit>().searchProperty(
+                  searchController.text,
+                  offset: 0,
+                  filter: value);
             }
           });
         },
@@ -194,13 +185,16 @@ class SearchScreenState extends State<SearchScreen>
       );
     }
     if (state is SearchPropertyFailure) {
-      if (state.errorMessage is ApiException) {
+      if (state.errorMessage is NoInternetConnectionError) {
         return NoInternet(
           onRetry: () {
-            context.read<SearchPropertyCubit>().searchProperty("", offset: 0);
+            context
+                .read<SearchPropertyCubit>()
+                .searchProperty("", offset: 0, filter: selectedFilter);
           },
         );
       }
+
       return const SomethingWentWrong();
     }
 
@@ -330,19 +324,25 @@ class SearchScreenState extends State<SearchScreen>
                           isFocused = true;
                         });
                       })),
-              SizedBox(
+              const SizedBox(
                 width: 5,
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    Routes.filterScreen,
-                  ).then((value) {
-                    if (value == true) {
-                      context
-                          .read<SearchPropertyCubit>()
-                          .searchProperty(searchController.text, offset: 0);
+                  Navigator.pushNamed(context, Routes.filterScreen,
+                      arguments: {"filter": selectedFilter}).then((value) {
+                    if (value != null) {
+                      selectedFilter = value as FilterApply;
+                      context.read<SearchPropertyCubit>().searchProperty(
+                          searchController.text,
+                          offset: 0,
+                          filter: value);
+                      setState(() {});
+
+                      // context.read<SearchPropertyCubit>().searchProperty(
+                      //     searchController.text,
+                      //     offset: 0,
+                      //     filter: selectedFilter);
                     }
                   });
                 },

@@ -1,10 +1,7 @@
 import 'package:ebroker/data/model/project_model.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/responsiveSize.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../exports/main_export.dart';
-import '../../../../utils/ui_utils.dart';
 
 class ProjectHorizontalCard extends StatelessWidget {
   final ProjectModel project;

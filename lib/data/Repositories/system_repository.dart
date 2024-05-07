@@ -1,5 +1,4 @@
-import '../../utils/api.dart';
-import '../../utils/hive_utils.dart';
+import 'package:ebroker/exports/main_export.dart';
 
 class SystemRepository {
   Future<Map> fetchSystemSettings({required bool isAnonymouse}) async {
@@ -13,14 +12,12 @@ class SystemRepository {
         parameters['user_id'] = HiveUtils.getUserId();
       }
     }
-    // Stopwatch time = Stopwatch();
-    // time.start();
+
     Map<String, dynamic> response = await Api.post(
         url: Api.apiGetSystemSettings,
         parameter: parameters,
         useAuthToken: !isAnonymouse);
-    // time.stop();
-    // print("SYSTEM SETTING TAKES ${time.elapsed.inSeconds}");
+
     return response;
   }
 }

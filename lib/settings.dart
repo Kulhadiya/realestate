@@ -4,7 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 ///eBroker configuration file
 /// Configure your app from here
 /// Most of basic configuration will be from here
-/// For theme colors go to [lib/Ui/Theme/theme.dart]
+/// For theme colors go to [lib/ui/Theme/theme.dart]
 class AppSettings {
   ///Basic Settings
   static const String applicationName = 'eBroker';
@@ -16,7 +16,7 @@ class AppSettings {
   static const String shareAppText = "Share this App";
 
   ///API Setting
-  static const String hostUrl = "YOUR URL";
+  static const String hostUrl = "HOST URL";
 
   static const int apiDataLoadLimit = 20;
   static const int maxCategoryShowLengthInHomeScreen = 5;
@@ -32,10 +32,9 @@ it will call API in background without showing the process and when data availab
   static const DeepLinkType deepLinkingType = DeepLinkType.native;
 
   ///Native deep link
-  static const String shareNavigationWebUrl = "YOUR WEB VERSION URL";
+  static const String shareNavigationWebUrl = "ebrokerweb.wrteam.me";
 
   ///
-
   //TODO: Deprecated [We do not recommend using this as this will stop running in few time]
   /// You will find this prefix from firebase console in dynamic link section
   static const String deepLinkPrefix =
@@ -85,8 +84,6 @@ it will call API in background without showing the process and when data availab
   ///Other settings
   static const String notificationChannel = "basic_channel"; //
   static int uploadImageQuality = 50; //0 to 100th
-  static const Set additionalRTLlanguages =
-      {}; //Add language code in bracket  {"ab","bc"}
 
 //Advance settings
 //This file is located in assets/riveAnimations

@@ -1,26 +1,14 @@
 // ignore_for_file: file_names
 
-import 'dart:async';
 import 'dart:developer';
 
-import 'package:ebroker/Ui/screens/ChatNew/MessageTypes/registerar.dart';
 import 'package:ebroker/data/model/chat/chated_user_model.dart';
-import 'package:ebroker/utils/Notification/chat_message_handler.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/ui/screens/chat_new/message_types/registerar.dart';
+import 'package:ebroker/ui/screens/chat_new/model.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../Ui/screens/ChatNew/model.dart';
-import '../../Ui/screens/chat/chat_screen.dart';
-import '../../app/routes.dart';
-import '../../data/Repositories/property_repository.dart';
-import '../../data/cubits/chatCubits/get_chat_users.dart';
-import '../../data/cubits/chatCubits/load_chat_messages.dart';
-import '../../data/model/data_output.dart';
-import '../../data/model/property_model.dart';
-import '../constant.dart';
-import '../helper_utils.dart';
-import 'awsomeNotification.dart';
+import '../../ui/screens/chat/chat_screen.dart';
 
 String currentlyChatingWith = "";
 String currentlyChatPropertyId = "";

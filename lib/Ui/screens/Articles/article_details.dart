@@ -1,11 +1,8 @@
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 
 import '../../../data/model/article_model.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
 
 class ArticleDetails extends StatelessWidget {
   final ArticleModel article;
@@ -58,7 +55,7 @@ class ArticleDetails extends StatelessWidget {
               SizedBox(
                 height: 15.rh(context),
               ),
-              Text(article.date.toString().formatDate())
+              Text(article.date.toString())
                   .size(context.font.small)
                   .color(context.color.textLightColor),
               const SizedBox(

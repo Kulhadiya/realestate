@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../Repositories/report_property_repository.dart';
+import '../../repositories/report_property_repository.dart';
 
 List<int> reportedProperties = [];
 

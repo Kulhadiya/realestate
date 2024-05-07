@@ -2,28 +2,31 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:dio/dio.dart';
-import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
-import 'package:ebroker/Ui/screens/widgets/blurred_dialoge_box.dart';
+import 'package:ebroker/app/routes.dart';
 import 'package:ebroker/data/cubits/project/delete_project_cubit.dart';
 import 'package:ebroker/data/cubits/project/fetchMyProjectsListCubit.dart';
-import 'package:ebroker/exports/main_export.dart';
-import 'package:ebroker/utils/CloudState/cloud_state.dart';
+import 'package:ebroker/data/helper/widgets.dart';
+import 'package:ebroker/ui/screens/widgets/animated_routes/blur_page_route.dart';
+import 'package:ebroker/utils/AppIcon.dart';
 import 'package:ebroker/utils/Extensions/extensions.dart';
+import 'package:ebroker/utils/cloud_state/cloud_state.dart';
+import 'package:ebroker/utils/constant.dart';
 import 'package:ebroker/utils/helper_utils.dart';
+import 'package:ebroker/utils/hive_utils.dart';
 import 'package:ebroker/utils/responsiveSize.dart';
+import 'package:ebroker/utils/ui_utils.dart';
+import 'package:ebroker/utils/video_player/video_player_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../data/helper/widgets.dart';
 import '../../../../data/model/project_model.dart';
-import '../../../../utils/AppIcon.dart';
-import '../../../../utils/VideoPlayer/video_player_widget.dart';
+import '../../../../ui/screens/widgets/blurred_dialoge_box.dart';
 import '../../../../utils/typedefs.dart';
-import '../../../../utils/ui_utils.dart';
 import '../../proprties/property_details.dart';
 import '../../widgets/gallery_view.dart';
 
@@ -405,6 +408,13 @@ class _ProjectDetailsScreenState extends CloudState<ProjectDetailsScreen> {
                   child: UiUtils.buildButton(context,
                       // padding: const EdgeInsets.symmetric(horizontal: 1),
                       outerPadding: const EdgeInsets.all(1), onPressed: () {
+                    if (Constant.isDemoModeOn) {
+                      HelperUtils.showSnackBarMessage(
+                          context, "Not valid in demo mode");
+
+                      return;
+                    }
+
                     Navigator.pushNamed(context, Routes.addProjectDetails,
                         arguments: {
                           "id": project.id,
@@ -436,6 +446,14 @@ class _ProjectDetailsScreenState extends CloudState<ProjectDetailsScreen> {
                           height: 14,
                         ),
                       ), onPressed: () async {
+                    print("is demo mode ${Constant.isDemoModeOn}");
+                    if (Constant.isDemoModeOn) {
+                      HelperUtils.showSnackBarMessage(
+                          context, "Not valid in demo mode");
+
+                      return;
+                    }
+
                     UiUtils.showBlurredDialoge(context,
                         dialoge: BlurredDialogBox(
                             title: "areYouSure".translate(context),

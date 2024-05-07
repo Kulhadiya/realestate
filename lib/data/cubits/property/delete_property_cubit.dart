@@ -1,5 +1,6 @@
-import '../../Repositories/property_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../repositories/property_repository.dart';
 
 abstract class DeletePropertyState {}
 

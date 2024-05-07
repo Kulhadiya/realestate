@@ -1,41 +1,17 @@
-import 'dart:async';
-import 'dart:developer';
-import 'dart:io';
-
 import 'package:country_picker/country_picker.dart';
-import 'package:ebroker/settings.dart';
+import 'package:ebroker/data/repositories/auth_repository.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/utils/login/apple_login/apple_login.dart';
+import 'package:ebroker/utils/login/google_login/google_login.dart';
+import 'package:ebroker/utils/login/lib/login_status.dart';
+import 'package:ebroker/utils/login/lib/login_system.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_sim_country_code/flutter_sim_country_code.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
-import '../../../app/default_app_setting.dart';
-import '../../../app/routes.dart';
-import '../../../data/cubits/auth/auth_cubit.dart';
-import '../../../data/cubits/auth/login_cubit.dart';
-import '../../../data/cubits/auth/send_otp_cubit.dart';
-import '../../../data/cubits/auth/verify_otp_cubit.dart';
-import '../../../data/cubits/system/delete_account_cubit.dart';
-import '../../../data/cubits/system/fetch_system_settings_cubit.dart';
-import '../../../data/cubits/system/user_details.dart';
-import '../../../data/helper/designs.dart';
-import '../../../data/helper/widgets.dart';
 import '../../../data/model/system_settings_model.dart';
-import '../../../utils/AppIcon.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/Network/apiCallTrigger.dart';
-import '../../../utils/api.dart';
-import '../../../utils/constant.dart';
-import '../../../utils/guestChecker.dart';
-import '../../../utils/helper_utils.dart';
-import '../../../utils/hive_utils.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
 import '../../../utils/validator.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool? isDeleteAccount;
@@ -65,7 +41,7 @@ class LoginScreen extends StatefulWidget {
 class LoginScreenState extends State<LoginScreen> {
   final TextEditingController mobileNumController = TextEditingController(
       text: Constant.isDemoModeOn ? Constant.demoMobileNumber : "");
-  //final TextEditingController otpController = TextEditingController();
+
   final List<TextEditingController> _controllers = [];
   final List<FocusNode> _focusNodes = [];
   List<Widget> list = [];
@@ -73,7 +49,6 @@ class LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool isOtpSent = false; //to swap between login & OTP screen
   bool isChecked = false; //Privacy policy checkbox value check
-  // bool enableResend = false;
   String? phone, otp, countryCode, countryName, flagEmoji;
   int otpLength = 6;
   Timer? timer;
@@ -85,12 +60,52 @@ class LoginScreenState extends State<LoginScreen> {
     Constant.otpResendSecond + 1,
   );
   TextEditingController otpController = TextEditingController();
-  CountryService countryCodeService = CountryService();
   bool isLoginButtonDisabled = true;
   String otpIs = "";
+
+  MMultiAuthentication loginSystem = MMultiAuthentication({
+    "google": GoogleLogin(),
+    "apple": AppleLogin(),
+  });
+
   @override
   void initState() {
     super.initState();
+    loginSystem.init();
+    loginSystem.setContext(context);
+    loginSystem.listen((MLoginState state) {
+      if (state is MProgress) {
+        Widgets.showLoader(context);
+      }
+
+      if (state is MSuccess) {
+        Widgets.hideLoder(context);
+        if (widget.isDeleteAccount ?? false) {
+          context.read<DeleteAccountCubit>().deleteUserAccount(context);
+        } else {
+          context.read<LoginCubit>().login(
+                type: LoginType.values
+                    .firstWhere((element) => element.name == state.type),
+                email: state.credentials.user?.providerData.first.email,
+                phoneNumber:
+                    state.credentials.user?.providerData.first.phoneNumber,
+                fireabseUserId: state.credentials.user!.uid,
+                countryCode: countryCode,
+              );
+        }
+      }
+
+      if (state is MFail) {
+        Widgets.hideLoder(context);
+        if (state.error.toString() != "google-terminated") {
+          HelperUtils.showSnackBarMessage(
+            context,
+            state.error.toString(),
+            type: MessageType.error,
+          );
+        }
+      }
+    });
     context.read<FetchSystemSettingsCubit>().fetchSettings(
           isAnonymouse: true,
           forceRefresh: true,
@@ -107,11 +122,7 @@ class LoginScreenState extends State<LoginScreen> {
       },
     );
 
-    if (widget.isDeleteAccount ?? false) {
-      sendVerificationCode(number: HiveUtils.getUserDetails().mobile);
-      isOtpSent = true;
-    }
-    getSimCountry().then((value) {
+    HelperUtils.getSimCountry().then((value) {
       countryCode = value.phoneCode;
       flagEmoji = value.flagEmoji;
       setState(() {});
@@ -133,39 +144,6 @@ class LoginScreenState extends State<LoginScreen> {
         _loginOnOTPFilled();
       }
     });
-  }
-
-  /// it will return user's sim cards country code
-  Future<Country> getSimCountry() async {
-    List<Country> countryList = countryCodeService.getAll();
-    String? simCountryCode;
-
-    try {
-      simCountryCode = await FlutterSimCountryCode.simCountryCode;
-    } catch (e) {
-      log("--don't--remove");
-    }
-
-    Country simCountry = countryList.firstWhere(
-      (element) {
-        return element.phoneCode == simCountryCode;
-      },
-      orElse: () {
-        return countryList
-            .where(
-              (element) => element.phoneCode == Constant.defaultCountryCode,
-            )
-            .first;
-      },
-    );
-
-    if (Constant.isDemoModeOn) {
-      simCountry = countryList
-          .where((element) => element.phoneCode == Constant.demoCountryCode)
-          .first;
-    }
-
-    return simCountry;
   }
 
   void listenotp() {
@@ -205,7 +183,7 @@ class LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    for (final controller in _controllers) {
+    for (final TextEditingController controller in _controllers) {
       controller.dispose();
     }
     if (timer != null) {
@@ -247,8 +225,18 @@ class LoginScreenState extends State<LoginScreen> {
     setState(() {});
   }
 
+  void _onGoogleTap() async {
+    loginSystem.setActive("google");
+    loginSystem.login();
+  }
+
+  void _onTapAppleLogin() async {
+    loginSystem.setActive("apple");
+    loginSystem.login();
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(final BuildContext context) {
     size = MediaQuery.of(context).size;
 
     if (context.watch<FetchSystemSettingsCubit>().state
@@ -395,7 +383,7 @@ class LoginScreenState extends State<LoginScreen> {
                     FirebaseAnalytics analytics = FirebaseAnalytics.instance;
                     GuestChecker.set(isGuest: false);
                     HiveUtils.setIsNotGuest();
-                    await LoadAppSettings().load();
+                    await LoadAppSettings().load(true);
                     context
                         .read<UserDetailsCubit>()
                         .fill(HiveUtils.getUserDetails());
@@ -493,6 +481,7 @@ class LoginScreenState extends State<LoginScreen> {
                               .deleteUserAccount(context);
                         } else {
                           context.read<LoginCubit>().login(
+                              type: LoginType.phone,
                               phoneNumber: state.credential.user!.phoneNumber!,
                               fireabseUserId: state.credential.user!.uid,
                               countryCode: countryCode);
@@ -501,7 +490,6 @@ class LoginScreenState extends State<LoginScreen> {
                     },
                     child: BlocListener<SendOtpCubit, SendOtpState>(
                       listener: (context, state) {
-                        print("HERE STATE: $state");
                         if (state is SendOtpInProgress) {
                           Widgets.showLoader(context);
                         } else {
@@ -547,16 +535,16 @@ class LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget buildOtpVerificationScreen() {
-    String demoOTP() {
-      if (Constant.isDemoModeOn &&
-          Constant.demoMobileNumber == mobileNumController.text) {
-        return Constant.demoModeOTP; // If true, return the demo mode OTP.
-      } else {
-        return ""; // If false, return an empty string.
-      }
+  String demoOTP() {
+    if (Constant.isDemoModeOn &&
+        Constant.demoMobileNumber == mobileNumController.text) {
+      return Constant.demoModeOTP; // If true, return the demo mode OTP.
+    } else {
+      return ""; // If false, return an empty string.
     }
+  }
 
+  Widget buildOtpVerificationScreen() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
@@ -670,7 +658,9 @@ class LoginScreenState extends State<LoginScreen> {
             SizedBox(
               height: 15.rh(context),
             ),
-            Text(UiUtils.translate(context, "weSendYouCode"))
+            Text(
+              UiUtils.translate(context, "weSendYouCode"),
+            )
                 .size(context.font.large)
                 .color(context.color.textColorDark.withOpacity(0.8)),
             SizedBox(
@@ -683,6 +673,74 @@ class LoginScreenState extends State<LoginScreen> {
             buildNextButton(context),
             SizedBox(
               height: 20.rh(context),
+            ),
+            if (true) ...[
+              const Center(
+                child: Text("Or continue with"),
+              ),
+              SizedBox(
+                height: 20.rh(context),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (Platform.isIOS)
+                    GestureDetector(
+                      onTap: () {
+                        HelperUtils.unfocus();
+                        _onTapAppleLogin();
+                      },
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                            color: context.color.secondaryColor,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color: context.color.borderColor, width: 1.5)),
+                        child: FittedBox(
+                          fit: BoxFit.none,
+                          child: SvgPicture.asset(
+                            AppIcons.apple,
+                            height: 25,
+                            width: 25,
+                          ),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      HelperUtils.unfocus();
+
+                      _onGoogleTap.call();
+                    },
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                          color: context.color.secondaryColor,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                              color: context.color.borderColor, width: 1.5)),
+                      child: FittedBox(
+                        fit: BoxFit.none,
+                        child: SvgPicture.asset(
+                          AppIcons.google,
+                          height: 25,
+                          width: 25,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(
+              height: 25,
             ),
             buildTermsAndPrivacyWidget()
           ]),
@@ -924,9 +982,10 @@ class LoginScreenState extends State<LoginScreen> {
                 TextSpan(
                   text: UiUtils.translate(context, "termsConditions"),
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.tertiaryColor,
-                      decoration: TextDecoration.underline,
-                      fontWeight: FontWeight.w600),
+                        color: Theme.of(context).colorScheme.tertiaryColor,
+                        decoration: TextDecoration.underline,
+                        fontWeight: FontWeight.w600,
+                      ),
                   recognizer: TapGestureRecognizer()
                     ..onTap = (() {
                       HelperUtils.goToNextPage(

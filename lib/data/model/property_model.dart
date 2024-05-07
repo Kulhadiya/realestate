@@ -199,7 +199,6 @@ class PropertyModel {
           (rawjson['parameters'] as List).map((e) => e['image']).toList();
       HelperUtils.precacheSVG(List.from(list));
     } catch (e) {}
-
     return PropertyModel(
         id: rawjson["id"],
         allPropData: rawjson,

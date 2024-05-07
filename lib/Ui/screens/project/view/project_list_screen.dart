@@ -1,17 +1,8 @@
-import 'dart:developer';
-
-import 'package:ebroker/Ui/screens/widgets/Erros/no_data_found.dart';
-import 'package:ebroker/Ui/screens/widgets/Erros/something_went_wrong.dart';
-import 'package:ebroker/data/cubits/project/fetchMyProjectsListCubit.dart';
 import 'package:ebroker/data/model/project_model.dart';
 import 'package:ebroker/exports/main_export.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../../utils/ui_utils.dart';
-import '../../home/Widgets/project_card_horizontal.dart';
-import '../../widgets/AnimatedRoutes/blur_page_route.dart';
+import '../../home/widgets/project_card_horizontal.dart';
 
 class ProjectListScreen extends StatefulWidget {
   const ProjectListScreen({super.key});
@@ -57,7 +48,11 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             return Center(child: UiUtils.progress());
           }
           if (state is FetchMyProjectsListFail) {
-            log(state.error.toString(), name: "project fetch errori s");
+            if (state.error is NoInternetConnectionError) {
+              return NoInternet(onRetry: () {
+                context.read<FetchMyProjectsListCubit>().fetch();
+              });
+            }
             return const SomethingWentWrong();
           }
           if (state is FetchMyProjectsListSuccess) {
@@ -207,7 +202,7 @@ class ProjectCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           vertical: 4, horizontal: 7),
                       child: Text(
-                        status,
+                        status.translate(context),
                         textAlign: TextAlign.left,
                       )
                           .size(context.font.smaller)

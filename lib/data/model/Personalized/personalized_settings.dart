@@ -1,4 +1,4 @@
-import 'package:ebroker/utils/Extensions/lib/list.dart';
+import 'package:ebroker/utils/extensions/lib/list.dart';
 
 class PersonalizedInterestSettings {
   final int userId;

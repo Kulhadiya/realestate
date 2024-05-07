@@ -21,7 +21,7 @@ class HomePageStateListener {
   bool isMostLikedPropertiesEmpty = false;
   void init(setState, {required VoidCallback onNetAvailable}) {
     connectivity.onConnectivityChanged.listen((event) {
-      if (event == ConnectivityResult.none) {
+      if (event.contains(ConnectivityResult.none)) {
         isNetworkAvailable = false;
         setState(() {});
       } else {
@@ -49,6 +49,7 @@ class HomePageStateListener {
         promotedSuccess = false,
         mostVSuccess = false,
         sliderSuccess = false;
+
     var fetchPromotedPropertiesWatch =
         context.watch<FetchPromotedPropertiesCubit>().state;
     var fetchMostViewedPropertiesWatch =
@@ -117,21 +118,19 @@ class HomePageStateListener {
       isNearbyPropertiesEmpty: isNearbyPropertiesEmpty,
       isMostLikedPropertiesEmpty: isMostLikedPropertiesEmpty,
     );
-
+    ({
+      "hasCategoryError": hasCategoryError,
+      "hasMostViewdPropertyError": hasMostViewdPropertyError,
+      "hasPromotedPropertyError": hasPromotedPropertyError,
+      "hasMostLikedPropertyError": hasMostLikedPropertyError,
+      "hasNearbyPropertyError": hasNearbyPropertyError
+    }).mlog("HomeScreenState");
     if ((hasCategoryError ||
             hasMostViewdPropertyError ||
             hasPromotedPropertyError ||
             hasMostLikedPropertyError ||
             hasNearbyPropertyError) &&
         isNetworkAvailable) {
-      var x = {
-        "hasCategoryError": hasCategoryError,
-        "hasMostViewdPropertyError": hasMostViewdPropertyError,
-        "hasPromotedPropertyError": hasPromotedPropertyError,
-        "hasMostLikedPropertyError": hasMostLikedPropertyError,
-        "hasNearbyPropertyError": hasNearbyPropertyError
-      }..mlog("HomeScreenState");
-
       return HomeScreenDataBinding(
           state: HomeScreenDataState.fail, dataAvailability: dataAvailability);
     } else if (sliderSuccess &&

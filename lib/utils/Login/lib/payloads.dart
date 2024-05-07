@@ -21,10 +21,11 @@ class GoogleLoginPayload extends LoginPayload {
   GoogleLoginPayload();
 }
 
+int? forceResendingtoken;
+
 class PhoneLoginPayload extends LoginPayload {
   final String phoneNumber;
   final String countryCode;
-  static int? forceResendingtoken;
   String? otp;
   PhoneLoginPayload(this.phoneNumber, this.countryCode);
   void setOTP(String value) {

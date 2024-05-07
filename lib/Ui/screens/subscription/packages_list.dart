@@ -1,34 +1,20 @@
-import 'dart:io';
+import 'dart:developer';
 
-import 'package:ebroker/Ui/screens/subscription/widget/current_package_card.dart';
-import 'package:ebroker/Ui/screens/subscription/widget/package_tile.dart';
-import 'package:ebroker/Ui/screens/subscription/widget/subscripton_feature_line.dart';
 import 'package:ebroker/data/cubits/subscription/assign_free_package.dart';
 import 'package:ebroker/data/cubits/subscription/assign_package.dart';
-import 'package:ebroker/data/helper/widgets.dart';
 import 'package:ebroker/exports/main_export.dart';
-import 'package:ebroker/utils/api.dart';
-import 'package:ebroker/utils/helper_utils.dart';
-import 'package:ebroker/utils/payment/InAppPurchase/inAppPurchaseManager.dart';
+import 'package:ebroker/ui/screens/subscription/widget/current_package_card.dart';
+import 'package:ebroker/ui/screens/subscription/widget/package_tile.dart';
+import 'package:ebroker/ui/screens/subscription/widget/subscripton_feature_line.dart';
+import 'package:ebroker/utils/liquid_indicator/src/liquid_circular_progress_indicator.dart';
+import 'package:ebroker/utils/payment/in_app_purchase/inAppPurchaseManager.dart';
 import 'package:ebroker/utils/payment/lib/payment.dart';
 import 'package:ebroker/utils/payment/lib/payment_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../../data/model/subscription_pacakage_model.dart';
 import '../../../utils/AdMob/bannerAdLoadWidget.dart';
 import '../../../utils/AdMob/interstitialAdManager.dart';
-import '../../../utils/AppIcon.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/LiquidIndicator/src/liquid_circular_progress_indicator.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/Erros/no_data_found.dart';
-import '../widgets/Erros/no_internet.dart';
-import '../widgets/Erros/something_went_wrong.dart';
-import '../widgets/shimmerLoadingContainer.dart';
 import 'payment_gatways.dart';
 
 class SubscriptionPackageListScreen extends StatefulWidget {
@@ -75,7 +61,6 @@ class _SubscriptionPackageListScreenState
   final ScrollController _scrollController = ScrollController();
   @override
   void initState() {
-    // logServerInit();
     _scrollController.addListener(() {
       if (_scrollController.isEndReached()) {
         if (context.read<FetchSubscriptionPackagesCubit>().hasMore()) {
@@ -120,6 +105,9 @@ class _SubscriptionPackageListScreenState
 
   int selectedPage = 0;
   Future<void> _onTapSubscribe(subscriptionPackage) async {
+    ///
+    log("######## ${AppSettings.enabledPaymentGatway}----${AppSettings.razorpayKey}");
+
     if (subscriptionPackage.price?.toInt() == 0) {
       context.read<AssignFreePackageCubit>().assign(subscriptionPackage.id!);
       return;
@@ -146,17 +134,6 @@ class _SubscriptionPackageListScreenState
       color: context.color.tertiaryColor,
       onRefresh: () async {
         context.read<FetchSubscriptionPackagesCubit>().fetchPackages();
-
-        ///
-        ///
-        // mySubscriptions = context
-        //     .read<FetchSystemSettingsCubit>()
-        //     .getSetting(SystemSetting.subscription);
-
-        // if (mySubscriptions.isNotEmpty) {
-        //   isLifeTimeSubscription = mySubscriptions[0]['end_date'] == null;
-        // }
-        // hasAlreadyPackage = mySubscriptions.isNotEmpty;
       },
       child: Scaffold(
         backgroundColor: context.color.primaryColor,
@@ -178,7 +155,6 @@ class _SubscriptionPackageListScreenState
               BlocListener<AssignInAppPackageCubit, AssignInAppPackageState>(
                 listener: (context, state) {
                   if (state is AssignInAppPackageSuccess) {
-                    // Widgets.hideLoder(context);
                     context
                         .read<FetchSystemSettingsCubit>()
                         .fetchSettings(isAnonymouse: false, forceRefresh: true);
@@ -201,6 +177,9 @@ class _SubscriptionPackageListScreenState
                     context
                         .read<FetchSubscriptionPackagesCubit>()
                         .fetchPackages();
+                    context
+                        .read<FetchSystemSettingsCubit>()
+                        .fetchSettings(isAnonymouse: false, forceRefresh: true);
 
                     HelperUtils.showSnackBarMessage(
                         context, "Free package is assigned");
@@ -235,18 +214,16 @@ class _SubscriptionPackageListScreenState
                       );
                     }
                     if (state is FetchSubscriptionPackagesFailure) {
-                      if (state.errorMessage is ApiException) {
-                        if (state.errorMessage.errorMessage == "no-internet") {
-                          return NoInternet(
-                            onRetry: () {
-                              context
-                                  .read<FetchSubscriptionPackagesCubit>()
-                                  .fetchPackages();
-                            },
-                          );
-                        }
+                      if (state.errorMessage is NoInternetConnectionError) {
+                        return NoInternet(
+                          onRetry: () {
+                            context
+                                .read<FetchSubscriptionPackagesCubit>()
+                                .fetchPackages();
+                          },
+                        );
                       }
-                      print("THe error is ${state.errorMessage}");
+
                       return const SomethingWentWrong();
                     }
                     if (state is FetchSubscriptionPackagesSuccess) {
@@ -261,177 +238,6 @@ class _SubscriptionPackageListScreenState
                           },
                         );
                       }
-
-                      // return Column(
-                      //   mainAxisAlignment: MainAxisAlignment.center,
-                      //   children: [
-                      //     CarouselSlider.builder(
-                      //       itemCount: state.subscriptionPacakges.length,
-                      //       itemBuilder: (BuildContext context, int itemIndex,
-                      //           int pageViewIndex) {
-                      //         SubscriptionPackageModel subscriptionPacakge =
-                      //             state.subscriptionPacakges[itemIndex];
-                      //         return Container(
-                      //           width: context.screenWidth * 0.98,
-                      //           decoration: BoxDecoration(
-                      //               color: context.color.secondaryColor,
-                      //               borderRadius: BorderRadius.circular(18),
-                      //               border: Border.all(
-                      //                   color: context.color.borderColor,
-                      //                   width: 1.5)),
-                      //           child: Column(
-                      //             children: [
-                      //               const SizedBox(
-                      //                 height: 24,
-                      //               ),
-                      //               Text(subscriptionPacakge.name.toString())
-                      //                   .size(context.font.extraLarge)
-                      //                   .color(context.color.tertiaryColor)
-                      //                   .bold(weight: FontWeight.w600),
-                      //               const SizedBox(
-                      //                 height: 14,
-                      //               ),
-                      //               Container(
-                      //                 width: 186,
-                      //                 height: 186,
-                      //                 decoration: BoxDecoration(
-                      //                   color: context.color.tertiaryColor
-                      //                       .withOpacity(0.1),
-                      //                   shape: BoxShape.circle,
-                      //                 ),
-                      //                 child: SvgPicture.asset(
-                      //                     AppIcons.placeHolder),
-                      //               ),
-                      //               const SizedBox(
-                      //                 height: 10,
-                      //               ),
-                      //               Padding(
-                      //                 padding: const EdgeInsets.fromLTRB(
-                      //                     20.0, 10, 20, 10),
-                      //                 child: Container(
-                      //                   height: 75,
-                      //                   decoration: BoxDecoration(
-                      //                       borderRadius:
-                      //                           BorderRadius.circular(14),
-                      //                       border: Border.all(
-                      //                           color: context
-                      //                               .color.tertiaryColor,
-                      //                           width: 1.5)),
-                      //                   child: Padding(
-                      //                     padding: const EdgeInsets.symmetric(
-                      //                         horizontal: 18.0, vertical: 14),
-                      //                     child: Row(
-                      //                       mainAxisAlignment:
-                      //                           MainAxisAlignment
-                      //                               .spaceBetween,
-                      //                       crossAxisAlignment:
-                      //                           CrossAxisAlignment.center,
-                      //                       children: [
-                      //                         Column(
-                      //                           crossAxisAlignment:
-                      //                               CrossAxisAlignment.start,
-                      //                           children: [
-                      //                             Text("30 Days")
-                      //                                 .size(
-                      //                                     context.font.larger)
-                      //                                 .bold(
-                      //                                     weight: FontWeight
-                      //                                         .w600),
-                      //                             Text("50% Off").color(
-                      //                                 context.color
-                      //                                     .textLightColor)
-                      //                           ],
-                      //                         ),
-                      //                         Column(
-                      //                           crossAxisAlignment:
-                      //                               CrossAxisAlignment.end,
-                      //                           children: [
-                      //                             Text(r"$549")
-                      //                                 .size(
-                      //                                     context.font.larger)
-                      //                                 .bold(
-                      //                                     weight: FontWeight
-                      //                                         .w600),
-                      //                             Text(r"800").color(context
-                      //                                 .color.textLightColor)
-                      //                           ],
-                      //                         )
-                      //                       ],
-                      //                     ),
-                      //                   ),
-                      //                 ),
-                      //               ),
-                      //               Padding(
-                      //                 padding: const EdgeInsets.all(19.0),
-                      //                 child: Column(
-                      //                   children: [
-                      //                     PlanFacilityRow(
-                      //                         count: subscriptionPacakge
-                      //                             .advertisementLimit
-                      //                             .toString(),
-                      //                         facilityTitle:
-                      //                             "Advertisement limit is",
-                      //                         icon: AppIcons.ads),
-                      //                     const SizedBox(
-                      //                       height: 12,
-                      //                     ),
-                      //                     PlanFacilityRow(
-                      //                         count: subscriptionPacakge
-                      //                             .propertyLimit
-                      //                             .toString(),
-                      //                         facilityTitle:
-                      //                             "Property limit is",
-                      //                         icon: AppIcons.propertyLimites),
-                      //                     const SizedBox(
-                      //                       height: 12,
-                      //                     ),
-                      //                     PlanFacilityRow(
-                      //                         count:
-                      //                             "${subscriptionPacakge.duration}",
-                      //                         facilityTitle: "Validity ",
-                      //                         icon: AppIcons.days),
-                      //                   ],
-                      //                 ),
-                      //               ),
-                      //             ],
-                      //           ),
-                      //         );
-                      //       },
-                      //       options: CarouselOptions(
-                      //           autoPlay: false,
-                      //           enlargeCenterPage: true,
-                      //           onPageChanged: (index, reason) {
-                      //             selectedPage = index;
-                      //             setState(() {});
-                      //           },
-                      //           viewportFraction: 0.8,
-                      //           initialPage: 0,
-                      //           height: 420 + 72 + 15,
-                      //           // clipBehavior: Clip.antiAlias,
-                      //           disableCenter: true,
-                      //           enableInfiniteScroll: false),
-                      //     ),
-                      //     const SizedBox(
-                      //       height: 38,
-                      //     ),
-                      //     Indicator(state, context),
-                      //     const SizedBox(
-                      //       height: 38,
-                      //     ),
-                      //     MaterialButton(
-                      //       onPressed: () {},
-                      //       height: 50,
-                      //       minWidth: context.screenWidth * 0.8,
-                      //       shape: RoundedRectangleBorder(
-                      //         borderRadius: BorderRadius.circular(12),
-                      //       ),
-                      //       color: context.color.tertiaryColor,
-                      //       child: const Text("Subscribe Now")
-                      //           .color(context.color.buttonColor)
-                      //           .size(context.font.larger),
-                      //     ),
-                      //   ],
-                      // );
 
                       return SingleChildScrollView(
                         physics: const BouncingScrollPhysics(),
@@ -602,8 +408,6 @@ class _SubscriptionPackageListScreenState
                   limit: PackageLimit(advertismentLimit),
                   isTime: false,
                 ),
-                // bulletPoint(context,
-                //     "${UiUtils.getTranslatedLabel(context, "adLimitIs")} ${advertismentLimit == '' ? UiUtils.getTranslatedLabel(context, "lifetime") : ifServiceUnlimited(advertismentLimit, remining: advertismentRemining)}"),
                 const Spacer(),
                 if (!isUnlimited(advertismentLimit,
                         remining: advertismentRemining) &&
@@ -748,20 +552,14 @@ class _SubscriptionPackageListScreenState
           Row(
             children: [
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                // if (subscriptionPacakge.propertyLimit != "not_available")
-                // SubscriptionFeatureLine(),
-
                 SubscriptionFeatureLine(
                   limit: PackageLimit(subscriptionPacakge.propertyLimit),
                   isTime: false,
                   title: UiUtils.translate(context, "propertyLimit"),
                 ),
-                // bulletPoint(context,
-                //     "${UiUtils.getTranslatedLabel(context, "propertyLimit")} ${subscriptionPacakge.propertyLimit == '' ? UiUtils.getTranslatedLabel(context, "lifetime") : ifServiceUnlimited(subscriptionPacakge.propertyLimit)}"),
                 SizedBox(
                   height: 5.rh(context),
                 ),
-
                 SubscriptionFeatureLine(
                   limit: null,
                   isTime: true,
@@ -769,9 +567,7 @@ class _SubscriptionPackageListScreenState
                       "${subscriptionPacakge.duration} ${UiUtils.translate(context, "days")}",
                   title: UiUtils.translate(context, "validity"),
                 ),
-                // SubscriptionFeatureLine(),
               ]),
-              // const Spacer(),
               Expanded(
                 child: Padding(
                   padding: const EdgeInsetsDirectional.only(end: 15.0),

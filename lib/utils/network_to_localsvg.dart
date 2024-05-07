@@ -5,7 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive/hive.dart';
 
 class NetworkToLocalSvg {
-  Dio dio = Dio();
+  final Dio dio = Dio();
   Future<String?> convert(String url) async {
     try {
       Response response = await dio.get(url);
@@ -21,7 +21,8 @@ class NetworkToLocalSvg {
   }
 
   Widget svg(String url, {Color? color, double? width, double? height}) {
-    if (Hive.box(HiveKeys.svgBox).containsKey(url)) {
+    if (Hive.box(HiveKeys.svgBox).containsKey(url) &&
+        Hive.box(HiveKeys.svgBox).get(url).toString().isNotEmpty) {
       return SvgPicture.string(
         Hive.box(HiveKeys.svgBox).get(url) ?? "",
         color: color,

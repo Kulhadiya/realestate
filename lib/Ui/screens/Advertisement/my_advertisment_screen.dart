@@ -1,28 +1,10 @@
-import 'package:ebroker/data/cubits/Utility/proeprty_edit_global.dart';
-import 'package:ebroker/utils/api.dart';
+import 'package:ebroker/data/cubits/delete_advertisment_cubit.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/utils/admob/bannerAdLoadWidget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import '../../../app/routes.dart';
-import '../../../data/Repositories/advertisement_repository.dart';
-import '../../../data/cubits/delete_advertisment_cubit.dart';
-import '../../../data/cubits/favorite/add_to_favorite_cubit.dart';
-import '../../../data/cubits/favorite/fetch_favorites_cubit.dart';
 import '../../../data/cubits/property/fetch_my_promoted_propertys_cubit.dart';
-import '../../../data/model/property_model.dart';
-import '../../../utils/AdMob/bannerAdLoadWidget.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/constant.dart';
-import '../../../utils/helper_utils.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
-import '../home/Widgets/property_horizontal_card.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/Erros/no_data_found.dart';
-import '../widgets/Erros/no_internet.dart';
-import '../widgets/Erros/something_went_wrong.dart';
-import '../widgets/blurred_dialoge_box.dart';
+import '../../../data/repositories/advertisement_repository.dart';
 
 class MyAdvertismentScreen extends StatefulWidget {
   const MyAdvertismentScreen({super.key});
@@ -110,16 +92,14 @@ class _MyAdvertismentScreenState extends State<MyAdvertismentScreen> {
             return Center(child: UiUtils.progress());
           }
           if (state is FetchMyPromotedPropertysFailure) {
-            if (state.errorMessage is ApiException) {
-              if (state.errorMessage.errorMessage == "no-internet") {
-                return NoInternet(
-                  onRetry: () {
-                    context
-                        .read<FetchMyPromotedPropertysCubit>()
-                        .fetchMyPromotedPropertys();
-                  },
-                );
-              }
+            if (state.errorMessage is NoInternetConnectionError) {
+              return NoInternet(
+                onRetry: () {
+                  context
+                      .read<FetchMyPromotedPropertysCubit>()
+                      .fetchMyPromotedPropertys();
+                },
+              );
             }
 
             return const SomethingWentWrong();

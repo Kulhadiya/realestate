@@ -1,22 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:ui';
 
-import 'package:ebroker/Ui/screens/widgets/like_button_widget.dart';
-import 'package:ebroker/Ui/screens/widgets/promoted_widget.dart';
-import 'package:ebroker/data/cubits/favorite/add_to_favorite_cubit.dart';
-import 'package:ebroker/utils/AppIcon.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/responsiveSize.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/ui/screens/widgets/like_button_widget.dart';
+import 'package:ebroker/ui/screens/widgets/promoted_widget.dart';
 import 'package:ebroker/utils/string_extenstion.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
-
-import '../../../../data/model/property_model.dart';
-import '../../../../utils/constant.dart';
-import '../../../../utils/helper_utils.dart';
-import '../../../../utils/ui_utils.dart';
-import '../../proprties/property_details.dart';
 
 class PropertyHorizontalCard extends StatelessWidget {
   final PropertyModel property;
@@ -62,7 +51,7 @@ class PropertyHorizontalCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 4.5),
         child: GestureDetector(
           onLongPress: () {
-            HelperUtils.share(context, property.id!, property?.slugId ?? "");
+            HelperUtils.share(context, property.id!, property.slugId ?? "");
           },
           child: Container(
             height: addBottom == null ? 124 : (124 + (additionalHeight ?? 0)),
@@ -194,7 +183,7 @@ class PropertyHorizontalCard extends StatelessWidget {
                                   Row(
                                     children: [
                                       UiUtils.imageType(
-                                          property.category!.image ?? "",
+                                          property.category?.image ?? "",
                                           width: 18,
                                           height: 18,
                                           color: Constant.adaptThemeColorSvg
@@ -204,19 +193,19 @@ class PropertyHorizontalCard extends StatelessWidget {
                                         width: 5,
                                       ),
                                       Expanded(
-                                        child:
-                                            Text(property.category!.category!)
-                                                .setMaxLines(lines: 1)
-                                                .size(
-                                                  context.font.small
-                                                      .rf(context),
-                                                )
-                                                .bold(
-                                                  weight: FontWeight.w400,
-                                                )
-                                                .color(
-                                                  context.color.textLightColor,
-                                                ),
+                                        child: Text(
+                                                property.category?.category ??
+                                                    "")
+                                            .setMaxLines(lines: 1)
+                                            .size(
+                                              context.font.small.rf(context),
+                                            )
+                                            .bold(
+                                              weight: FontWeight.w400,
+                                            )
+                                            .color(
+                                              context.color.textLightColor,
+                                            ),
                                       ),
                                       if (showLikeButton ?? true)
                                         Container(
@@ -251,7 +240,8 @@ class PropertyHorizontalCard extends StatelessWidget {
                                     )
                                         .size(context.font.large)
                                         .color(context.color.tertiaryColor)
-                                        .bold(weight: FontWeight.w700),
+                                        .bold(weight: FontWeight.w700)
+                                        .setMaxLines(lines: 1),
                                   ] else ...[
                                     Text(
                                       property.price!
@@ -264,6 +254,7 @@ class PropertyHorizontalCard extends StatelessWidget {
                                             prefix: true,
                                           ),
                                     )
+                                        .setMaxLines(lines: 1)
                                         .size(context.font.large)
                                         .color(context.color.tertiaryColor)
                                         .bold(weight: FontWeight.w700),

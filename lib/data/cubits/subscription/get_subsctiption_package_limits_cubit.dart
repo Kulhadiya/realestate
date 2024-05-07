@@ -1,43 +1,43 @@
-import 'package:ebroker/data/Repositories/subscription_repository.dart';
+import 'package:ebroker/data/repositories/subscription_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../model/subscription_package_limit.dart';
 
-abstract class GetSubsctiptionPackageLimitsState {}
+abstract class GetSubscriptionPackageLimitsState {}
 
-class GetSubsctiptionPackageLimitsInitial
-    extends GetSubsctiptionPackageLimitsState {}
+class GetSubscriptionPackageLimitsInitial
+    extends GetSubscriptionPackageLimitsState {}
 
-class GetSubsctiptionPackageLimitsInProgress
-    extends GetSubsctiptionPackageLimitsState {}
+class GetSubscriptionPackageLimitsInProgress
+    extends GetSubscriptionPackageLimitsState {}
 
-class GetSubsctiptionPackageLimitsSuccess
-    extends GetSubsctiptionPackageLimitsState {
+class GetSubscriptionPackageLimitsSuccess
+    extends GetSubscriptionPackageLimitsState {
   final SubcriptionPackageLimit packageLimit;
 
-  GetSubsctiptionPackageLimitsSuccess(this.packageLimit);
+  GetSubscriptionPackageLimitsSuccess(this.packageLimit);
 }
 
 class GetSubsctiptionPackageLimitsFailure
-    extends GetSubsctiptionPackageLimitsState {
+    extends GetSubscriptionPackageLimitsState {
   final String errorMessage;
   GetSubsctiptionPackageLimitsFailure(this.errorMessage);
 }
 
 class GetSubsctiptionPackageLimitsCubit
-    extends Cubit<GetSubsctiptionPackageLimitsState> {
+    extends Cubit<GetSubscriptionPackageLimitsState> {
   final SubscriptionRepository _subscriptionRepository =
       SubscriptionRepository();
 
   GetSubsctiptionPackageLimitsCubit()
-      : super(GetSubsctiptionPackageLimitsInitial());
+      : super(GetSubscriptionPackageLimitsInitial());
 
   Future<void> getLimits(SubscriptionLimitType type) async {
     try {
-      emit(GetSubsctiptionPackageLimitsInProgress());
+      emit(GetSubscriptionPackageLimitsInProgress());
       SubcriptionPackageLimit subscriptionPackageLimit =
           await _subscriptionRepository.getPackageLimit(type);
-      emit(GetSubsctiptionPackageLimitsSuccess(subscriptionPackageLimit));
+      emit(GetSubscriptionPackageLimitsSuccess(subscriptionPackageLimit));
     } catch (error) {
       emit(GetSubsctiptionPackageLimitsFailure(error.toString()));
     }

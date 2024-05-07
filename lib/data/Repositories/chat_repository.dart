@@ -1,10 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:ebroker/utils/logger.dart';
+import 'package:ebroker/ui/screens/chat_new/message_types/blueprint.dart';
+import 'package:ebroker/ui/screens/chat_new/message_types/registerar.dart';
+import 'package:ebroker/ui/screens/chat_new/model.dart';
 import 'package:flutter/material.dart';
 
-import '../../Ui/screens/ChatNew/MessageTypes/blueprint.dart';
-import '../../Ui/screens/ChatNew/MessageTypes/registerar.dart';
-import '../../Ui/screens/ChatNew/model.dart';
 import '../../utils/api.dart';
 import '../../utils/constant.dart';
 import '../../utils/hive_utils.dart';
@@ -86,7 +85,6 @@ class ChatRepostiory {
     if (audio == null) {
       parameters.remove("audio");
     }
-    Logger.error(parameters, name: "CHAT PARAMS");
     Map<String, dynamic> map =
         await Api.post(url: Api.sendMessage, parameter: parameters);
     return map;

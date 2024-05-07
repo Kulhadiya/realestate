@@ -13,6 +13,8 @@ class AppIcons {
   //** */
   static String magic = _svgPath("magic");
   static String bin = _svgPath("bin");
+  static String apple = _svgPath("apple");
+  static String google = _svgPath("google");
   static String chat = _svgPath("inactive_chat");
   static String update = _svgPath("update");
   static String companyLogo = _svgPath("Logo/company_logo");

@@ -1,3 +1,5 @@
+import 'package:ebroker/utils/helper_utils.dart';
+
 class ProjectModel {
   int? id;
   String? slugId;
@@ -58,7 +60,7 @@ class ProjectModel {
   });
 
   factory ProjectModel.fromMap(Map<String, dynamic> map) {
-    print("PROJECT RESPONSE IS $map");
+    print("PROJECT RESPONSE IS ${HelperUtils.runtimeValueLog(map)}");
     return ProjectModel(
       id: map['id'],
       slugId: map['slug_id'],

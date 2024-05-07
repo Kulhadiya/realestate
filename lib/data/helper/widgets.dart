@@ -9,7 +9,7 @@ class Widgets {
   static void showLoader(BuildContext context) async {
     if (isLoaderShowing == true) return;
 
-    isLoaderShowing=true;
+    isLoaderShowing = true;
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -39,16 +39,11 @@ class Widgets {
 
   static void hideLoder(BuildContext context) {
     if (!isLoaderShowing) return;
-    isLoaderShowing=false;
+    isLoaderShowing = false;
     Navigator.of(context).pop();
   }
 
   static Center noDataFound(String errorMsg) {
     return Center(child: Text(errorMsg));
   }
-}
-
-//string Extension -- for ₹
-extension FormatAmount on String {
-  //working with static strings and not textFormField
 }

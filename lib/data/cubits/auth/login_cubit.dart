@@ -1,6 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'package:ebroker/data/Repositories/auth_repository.dart';
+import 'package:ebroker/data/repositories/auth_repository.dart';
 import 'package:ebroker/utils/hive_utils.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -29,12 +29,16 @@ class LoginCubit extends Cubit<LoginState> {
   bool isProfileIsCompleted = false;
 
   void login(
-      {required String phoneNumber,
+      {required String? phoneNumber,
       required String fireabseUserId,
+      String? email,
+      required LoginType type,
       required countryCode}) async {
     try {
       emit(LoginInProgress());
       Map<String, dynamic> result = await _authRepository.loginWithApi(
+        type: type,
+        email: email,
         phone: phoneNumber,
         uid: fireabseUserId,
       );
@@ -42,16 +46,21 @@ class LoginCubit extends Cubit<LoginState> {
       ///Storing data to local database {HIVE}
       HiveUtils.setJWT(result['token']);
 
-      if (result['data']['name'] == "" && result['data']['email'] == "") {
+      if (result['data']['name'] == "" ||
+          result['data']['email'] == "" ||
+          result['data']['phone'] == "") {
         HiveUtils.setProfileNotCompleted();
         isProfileIsCompleted = false;
         var data = result['data'];
         data['countryCode'] = countryCode;
+        data['type'] = type.name;
         HiveUtils.setUserData(data);
       } else {
         isProfileIsCompleted = true;
         var data = result['data'];
         data['countryCode'] = countryCode;
+        data['type'] = type.name;
+
         HiveUtils.setUserData(data);
       }
 

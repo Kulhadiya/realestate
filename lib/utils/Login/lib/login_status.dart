@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+
 abstract class MLoginState {}
 
 class MProgress extends MLoginState {}
@@ -8,7 +10,12 @@ class MVerificationPending extends MLoginState {
   MVerificationPending();
 }
 
-class MSuccess extends MLoginState {}
+class MSuccess extends MLoginState {
+  final String type;
+  final UserCredential credentials;
+
+  MSuccess(this.credentials, {required this.type});
+}
 
 class MFail extends MLoginState {
   final dynamic error;

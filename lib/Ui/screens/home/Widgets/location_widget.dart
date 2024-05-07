@@ -1,3 +1,4 @@
+import 'package:ebroker/ui/screens/widgets/bottom_sheets/choose_location_bottomsheet.dart';
 import 'package:ebroker/utils/Extensions/extensions.dart';
 import 'package:ebroker/utils/hive_keys.dart';
 import 'package:ebroker/utils/responsiveSize.dart';
@@ -11,7 +12,6 @@ import '../../../../data/model/google_place_model.dart';
 import '../../../../utils/AppIcon.dart';
 import '../../../../utils/hive_utils.dart';
 import '../../../../utils/ui_utils.dart';
-import '../../widgets/BottomSheets/choose_location_bottomsheet.dart';
 
 class LocationWidget extends StatefulWidget {
   const LocationWidget({super.key});
@@ -41,7 +41,9 @@ class _LocationWidgetState extends State<LocationWidget> {
     country = HiveUtils.getCountryName().toString().trim();
 
     List<String> locationList = [city, state, country];
-    locationList.removeWhere((element) => element.isEmpty);
+    locationList.removeWhere((element) {
+      return element.isEmpty;
+    });
 
     String joinedLocation = locationList.join(',');
     return FittedBox(

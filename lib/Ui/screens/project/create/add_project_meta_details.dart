@@ -1,18 +1,8 @@
-import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
-import 'package:ebroker/data/cubits/project/fetchMyProjectsListCubit.dart';
-import 'package:ebroker/data/cubits/project/manage_project_cubit.dart';
 import 'package:ebroker/exports/main_export.dart';
-import 'package:ebroker/utils/CloudState/cloud_state.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/responsiveSize.dart';
 import 'package:flutter/material.dart';
 
-import '../../../../data/helper/widgets.dart';
 import '../../../../data/model/category.dart' as c;
 import '../../../../data/model/project_model.dart';
-import '../../../../utils/ui_utils.dart';
-import '../../widgets/adaptive_image_picker.dart';
-import '../../widgets/custom_text_form_field.dart';
 
 class ProjectMetaDetails extends StatefulWidget {
   static route(RouteSettings settings) {
@@ -66,36 +56,34 @@ class _ProjectMetaDetailsState extends CloudState<ProjectMetaDetails> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             color: context.color.tertiaryColor,
             onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                Map<String, dynamic> data = {};
+              Map<String, dynamic> data = {};
 
-                Map<String, dynamic> metaDetails = {
-                  "meta_title": _metaTitleController.text,
-                  "meta_description": _metaDescriptionController.text,
-                  "meta_keywords": _metaKeywordsController.text,
-                  "meta_image": metaImage
-                };
-                data
-                  ..addAll(projectDetails)
-                  ..addAll(metaDetails)
-                  ..addAll(
-                    Map<String, dynamic>.from(
-                      getCloudData('floor_plans'),
-                    ),
-                  );
+              Map<String, dynamic> metaDetails = {
+                "meta_title": _metaTitleController.text,
+                "meta_description": _metaDescriptionController.text,
+                "meta_keywords": _metaKeywordsController.text,
+                "meta_image": metaImage
+              };
+              data
+                ..addAll(projectDetails)
+                ..addAll(metaDetails)
+                ..addAll(
+                  Map<String, dynamic>.from(
+                    getCloudData('floor_plans'),
+                  ),
+                );
 
-                if (!projectDetails.containsKey('category_id')) {
-                  data.addAll({
-                    "category_id":
-                        (Constant.addProperty['category'] as c.Category).id!
-                  });
-                }
-                data.remove("project");
-
-                context
-                    .read<ManageProjectCubit>()
-                    .manage(type: ManageProjectType.create, data: data);
+              if (!projectDetails.containsKey('category_id')) {
+                data.addAll({
+                  "category_id":
+                      (Constant.addProperty['category'] as c.Category).id!
+                });
               }
+              data.remove("project");
+
+              context
+                  .read<ManageProjectCubit>()
+                  .manage(type: ManageProjectType.create, data: data);
               // Navigator.pushNamed(context, Routes.projectMetaDataScreens);
             },
             height: 50,
@@ -113,6 +101,8 @@ class _ProjectMetaDetailsState extends CloudState<ProjectMetaDetails> {
           if (state is ManageProjectInSuccess) {
             context.read<FetchMyProjectsListCubit>().update(state.project);
             Widgets.hideLoder(context);
+            HelperUtils.showSnackBarMessage(
+                context, "projectAddedSuccessfully".translate(context));
             Navigator.of(context)
               ..pop()
               ..pop()
@@ -149,11 +139,10 @@ class _ProjectMetaDetailsState extends CloudState<ProjectMetaDetails> {
                 ),
                 height(10),
                 AdaptiveImagePickerWidget(
-                  isRequired: true,
+                  isRequired: false,
                   title: UiUtils.translate(context, "addMetaImage"),
                   multiImage: false,
                   value: project != null ? UrlValue(project!.metaImage!) : null,
-                  allowedSizeBytes: 307200,
                   onSelect: (ImagePickerValue? selected) {
                     if (selected is FileValue || selected == null) {
                       metaImage = selected;

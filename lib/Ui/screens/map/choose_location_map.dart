@@ -1,24 +1,7 @@
-import 'dart:async';
-
 import 'package:dio/dio.dart';
-import 'package:ebroker/data/Repositories/property_repository.dart';
-import 'package:ebroker/data/helper/widgets.dart';
-import 'package:ebroker/data/model/data_output.dart';
-import 'package:ebroker/data/model/property_model.dart';
 import 'package:ebroker/exports/main_export.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/helper_utils.dart';
-import 'package:ebroker/utils/responsiveSize.dart';
-import 'package:ebroker/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-import '../../../data/Repositories/location_repository.dart';
-import '../../../data/model/google_place_model.dart';
-import '../../../utils/AppIcon.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
+import 'package:geolocator/geolocator.dart';
 
 class ChooseLocationMap extends StatefulWidget {
   final num? latitude;
@@ -94,14 +77,44 @@ class _ChooseLocationMapState extends State<ChooseLocationMap> {
     widget.longitude?.toDouble() ?? 23.906250000000004,
   );
   late LatLng cameraPosition = assigned;
+
+  Future setCurrentLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    LocationPermission locationPermission = await Geolocator.checkPermission();
+    if (locationPermission == LocationPermission.always ||
+        locationPermission == LocationPermission.whileInUse) {
+      Future<void> animateCamera = (await completer.future).animateCamera(
+        CameraUpdate.newCameraPosition(
+          CameraPosition(
+              target: LatLng(position.latitude, position.longitude), zoom: 7),
+        ),
+      );
+    } else {
+      await Geolocator.requestPermission();
+    }
+
+    marker = Marker(
+        markerId: const MarkerId("9999999"),
+        position: LatLng(position.latitude, position.longitude));
+    Future.delayed(
+      Duration.zero,
+      () {
+        setState(() {});
+      },
+    );
+  }
+
   @override
   void initState() {
     _searchController.addListener(() {
       searchDelayTimer();
     });
     if (widget.latitude != null && widget.longitude != null) {
-      marker = Marker(markerId: MarkerId("9999999"), position: assigned);
+      marker = Marker(markerId: const MarkerId("9999999"), position: assigned);
       setState(() {});
+    } else {
+      setCurrentLocation();
     }
     Future.delayed(
       const Duration(milliseconds: 500),
@@ -116,13 +129,6 @@ class _ChooseLocationMapState extends State<ChooseLocationMap> {
 
   Future<void> onTapCity(int index) async {
     Widgets.showLoader(context);
-    // List<MapPoint> pointList =
-    //     await GMap.getNearByProperty(cities?.elementAt(0).city ?? "");
-
-    // if (pointList.isEmpty) {
-    //   marker = {};
-    //   setState(() {});
-    // }
 
     LatLng? latLng = await getCityLatLong(index);
     //Animate camera to location
@@ -131,7 +137,6 @@ class _ChooseLocationMapState extends State<ChooseLocationMap> {
         CameraPosition(target: latLng!, zoom: 7),
       ),
     );
-    // loopMarker(pointList);
 
     marker = (Marker(
         markerId: MarkerId(
@@ -151,38 +156,6 @@ class _ChooseLocationMapState extends State<ChooseLocationMap> {
     cities = null;
     setState(() {});
   }
-
-  // loopMarker(List<MapPoint> pointList) {
-  //   for (var i = 0; i < pointList.length; i++) {
-  //     var element = pointList[i];
-  //     //Add markers inside marker list
-  //     marker
-  //         .addLabelMarker(LabelMarker(
-  //       label: r"$" + (element.price).toString().priceFormate(),
-  //       markerId: MarkerId("$i"),
-  //       onTap: () async {
-  //         selectedMarker = i;
-  //         propertyId = element.propertyId;
-  //         marker.clear();
-  //         loopMarker(pointList);
-  //         setState(() {});
-  //         fetchProperty(element.propertyId);
-  //       },
-  //       position: LatLng(
-  //           double.parse(element.latitude), double.parse(element.longitude)),
-  //       backgroundColor: selectedMarker == i
-  //           ? Colors.red
-  //           : (element.propertyType.toLowerCase() == "sell"
-  //               ? Colors.green
-  //               : Colors.orange),
-  //     ))
-  //         .then(
-  //       (value) {
-  //         setState(() {});
-  //       },
-  //     );
-  //   }
-  // }
 
   Future<void> fetchProperty(int id) async {
     try {
@@ -213,38 +186,6 @@ class _ChooseLocationMapState extends State<ChooseLocationMap> {
     _searchController.dispose();
     super.dispose();
   }
-
-  // Future<void> _delayedPop(BuildContext context) async {
-  //   unawaited(
-  //     Navigator.of(context, rootNavigator: true).push(
-  //       PageRouteBuilder(
-  //         pageBuilder: (_, __, ___) => WillPopScope(
-  //           onWillPop: () async => false,
-  //           child: const Scaffold(
-  //             backgroundColor: Colors.transparent,
-  //             body: Center(
-  //               child: CircularProgressIndicator.adaptive(),
-  //             ),
-  //           ),
-  //         ),
-  //         transitionDuration: Duration.zero,
-  //         barrierDismissible: false,
-  //         barrierColor: Colors.black45,
-  //         opaque: false,
-  //       ),
-  //     ),
-  //   );
-  //   await Future.delayed(const Duration(seconds: 1));
-
-  //   Future.delayed(
-  //     Duration.zero,
-  //     () {
-  //       Navigator.of(context)
-  //         ..pop()
-  //         ..pop();
-  //     },
-  //   );
-  // }
 
   String? getComponent(List data, dynamic dm) {
     // log("CALLED");

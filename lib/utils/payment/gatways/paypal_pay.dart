@@ -1,12 +1,9 @@
-import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
 import 'package:ebroker/data/model/subscription_pacakage_model.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:ebroker/utils/payment/gatways/paypal.dart';
 import 'package:ebroker/utils/payment/lib/payment.dart';
 import 'package:ebroker/utils/payment/lib/purchase_package.dart';
-import 'package:ebroker/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
-
-import '../../../Ui/screens/widgets/blurred_dialoge_box.dart';
 
 class Paypal extends Payment {
   SubscriptionPackageModel? _modal;

@@ -1,54 +1,8 @@
-import 'package:ebroker/Ui/screens/Dashboard/dashbord.dart';
-import 'package:ebroker/Ui/screens/Personalized/personalized_property_screen.dart';
-import 'package:ebroker/Ui/screens/home/view_most_liked_properties.dart';
-import 'package:ebroker/Ui/screens/home/view_nearby_properties.dart';
-import 'package:ebroker/Ui/screens/map/choose_location_map.dart';
-import 'package:ebroker/Ui/screens/map/property_map_screen.dart';
-import 'package:ebroker/Ui/screens/project/create/add_project_details.dart';
-import 'package:ebroker/Ui/screens/project/create/add_project_meta_details.dart';
-import 'package:ebroker/Ui/screens/project/create/manage_floor_plans.dart';
-import 'package:ebroker/Ui/screens/project/view/project_details_screen.dart';
-import 'package:ebroker/Ui/screens/project/view/project_list_screen.dart';
-import 'package:ebroker/Ui/screens/proprties/AddProperyScreens/select_outdoor_facility.dart';
-import 'package:ebroker/data/cubits/project/all_projects_screen.dart';
 import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../Ui/screens/Advertisement/create_advertisement_screen.dart';
-import '../Ui/screens/Advertisement/my_advertisment_screen.dart';
-import '../Ui/screens/Articles/article_details.dart';
-import '../Ui/screens/Articles/articles_screen.dart';
-import '../Ui/screens/Converter/area_converter.dart';
-import '../Ui/screens/auth/login_screen.dart';
-import '../Ui/screens/favorites_screen.dart';
-import '../Ui/screens/filter_screen.dart';
-import '../Ui/screens/home/category_list.dart';
-import '../Ui/screens/home/change_language_screen.dart';
-import '../Ui/screens/home/search_screen.dart';
-import '../Ui/screens/home/view_most_viewed_properties.dart';
-import '../Ui/screens/home/view_promoted_properties.dart';
-import '../Ui/screens/main_activity.dart';
-import '../Ui/screens/onboarding/onboarding_screen.dart';
-import '../Ui/screens/proprties/AddProperyScreens/add_property_details.dart';
-import '../Ui/screens/proprties/AddProperyScreens/select_type_of_property.dart';
-import '../Ui/screens/proprties/AddProperyScreens/set_property_parameters.dart';
-import '../Ui/screens/proprties/properties_list.dart';
-import '../Ui/screens/proprties/property_details.dart';
-import '../Ui/screens/settings/contact_us.dart';
-import '../Ui/screens/settings/notification_detail.dart';
-import '../Ui/screens/settings/notifications.dart';
-import '../Ui/screens/settings/profile_setting.dart';
-import '../Ui/screens/splash_screen.dart';
-import '../Ui/screens/subscription/packages_list.dart';
-import '../Ui/screens/subscription/subscribe_screen.dart';
-import '../Ui/screens/subscription/transaction_history_screen.dart';
-import '../Ui/screens/userprofile/edit_profile.dart';
-import '../Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
-import '../Ui/screens/widgets/maintenance_mode.dart';
-import '../sandBox/playground.dart';
-import '../utils/DeepLink/nativeDeepLinkManager.dart';
-import '../utils/ui_utils.dart';
+import '../sandbox/playground.dart';
 
 class Routes {
   //private constructor
@@ -121,6 +75,7 @@ class Routes {
   static Route? onGenerateRouted(RouteSettings routeSettings) {
     previousCustomerRoute = currentRoute;
     currentRoute = routeSettings.name ?? "";
+    print("CURRENT ROUTE $currentRoute");
 
     ///This is to prevent infinity loading while login browser
     if (routeSettings.name!.contains("/link?")) {
@@ -201,8 +156,8 @@ class Routes {
         return MyAdvertismentScreen.route(routeSettings);
       case personalizedPropertyScreen:
         return PersonalizedPropertyScreen.route(routeSettings);
-      case dashboard:
-        return DashboardScreen.route(routeSettings);
+      // case dashboard:
+      //   return DashboardScreen.route(routeSettings);
       case addPropertyDetailsScreen:
         return AddPropertyDetails.route(routeSettings);
       case setPropertyParametersScreen:

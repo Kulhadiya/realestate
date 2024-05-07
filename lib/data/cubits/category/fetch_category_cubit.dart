@@ -1,16 +1,13 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
 import 'dart:convert';
-import 'dart:developer';
 
-import 'package:ebroker/data/Repositories/category_repository.dart';
 import 'package:ebroker/data/model/category.dart';
 import 'package:ebroker/data/model/data_output.dart';
+import 'package:ebroker/data/repositories/category_repository.dart';
+import 'package:ebroker/utils/Network/cacheManger.dart';
 import 'package:ebroker/utils/helper_utils.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-
-import '../../../settings.dart';
-import '../../../utils/Network/networkAvailability.dart';
 
 abstract class FetchCategoryState {}
 
@@ -90,86 +87,111 @@ class FetchCategoryFailure extends FetchCategoryState {
 }
 
 class FetchCategoryCubit extends Cubit<FetchCategoryState> with HydratedMixin {
-  FetchCategoryCubit() : super(FetchCategoryInitial());
+  FetchCategoryCubit() : super(FetchCategoryInitial()) {
+    hydrate();
+  }
 
   final CategoryRepository _categoryRepository = CategoryRepository();
 
   Future<void> fetchCategories(
       {bool? forceRefresh, bool? loadWithoutDelay}) async {
     try {
-      if (forceRefresh != true) {
-        if (state is FetchCategorySuccess) {
-          await Future.delayed(Duration(
-              seconds: loadWithoutDelay == true
-                  ? 0
-                  : AppSettings.hiddenAPIProcessDelay));
-        } else {
-          emit(FetchCategoryInProgress());
-        }
-      } else {
-        emit(FetchCategoryInProgress());
-      }
+      await CacheData().getData<FetchCategorySuccess>(
+          forceRefresh: forceRefresh == true,
+          delay: loadWithoutDelay == true ? 0 : null,
+          onProgress: () {
+            emit(FetchCategoryInProgress());
+          },
+          onNetworkRequest: () async {
+            DataOutput<Category> categories =
+                await _categoryRepository.fetchCategories(offset: 0);
 
-      if (forceRefresh == true) {
-        DataOutput<Category> categories =
-            await _categoryRepository.fetchCategories(offset: 0);
+            List<String> list =
+                categories.modelList.map((element) => element.image!).toList();
+            await HelperUtils.precacheSVG(list);
 
-        List<String> list =
-            categories.modelList.map((element) => element.image!).toList();
-        await HelperUtils.precacheSVG(list);
+            return FetchCategorySuccess(
+                total: categories.total,
+                categories: categories.modelList,
+                offset: 0,
+                hasError: false,
+                isLoadingMore: false);
+          },
+          onOfflineData: () {
+            return (state as FetchCategorySuccess);
+          },
+          onSuccess: (data) {
+            emit(data);
+          },
+          hasData: (state is FetchCategorySuccess));
 
-        log("CATEGORIES P${categories.modelList}");
-        emit(FetchCategorySuccess(
-            total: categories.total,
-            categories: categories.modelList,
-            offset: 0,
-            hasError: false,
-            isLoadingMore: false));
-      } else {
-        if (state is! FetchCategorySuccess) {
-          DataOutput<Category> categories =
-              await _categoryRepository.fetchCategories(offset: 0);
+      // if (forceRefresh != true) {
+      //   if (state is FetchCategorySuccess) {
+      //     await Future.delayed(Duration(
+      //         seconds: loadWithoutDelay == true
+      //             ? 0
+      //             : AppSettings.hiddenAPIProcessDelay));
+      //   } else {
+      //     emit(FetchCategoryInProgress());
+      //   }
+      // } else {
+      //   emit(FetchCategoryInProgress());
+      // }
 
-          List<String> list =
-              categories.modelList.map((element) => element.image!).toList();
-          await HelperUtils.precacheSVG(list);
-
-          emit(FetchCategorySuccess(
-              total: categories.total,
-              categories: categories.modelList,
-              offset: 0,
-              hasError: false,
-              isLoadingMore: false));
-        } else {
-          await CheckInternet.check(
-            onInternet: () async {
-              DataOutput<Category> categories =
-                  await _categoryRepository.fetchCategories(offset: 0);
-
-              List<String> list = categories.modelList
-                  .map((element) => element.image!)
-                  .toList();
-              await HelperUtils.precacheSVG(list);
-
-              emit(FetchCategorySuccess(
-                  total: categories.total,
-                  categories: categories.modelList,
-                  offset: 0,
-                  hasError: false,
-                  isLoadingMore: false));
-            },
-            onNoInternet: () {
-              emit(FetchCategorySuccess(
-                  total: (state as FetchCategorySuccess).total,
-                  offset: (state as FetchCategorySuccess).offset,
-                  isLoadingMore: (state as FetchCategorySuccess).isLoadingMore,
-                  hasError: (state as FetchCategorySuccess).hasError,
-                  categories: (state as FetchCategorySuccess).categories));
-            },
-          );
-        }
-      }
-    } catch (e) {
+      // if (forceRefresh == true) {
+      //   DataOutput<Category> categories =
+      //       await _categoryRepository.fetchCategories(offset: 0);
+      //
+      //   List<String> list =
+      //       categories.modelList.map((element) => element.image!).toList();
+      //   await HelperUtils.precacheSVG(list);
+      //
+      //   log("CATEGORIES P${categories.modelList}");
+      //   emit(FetchCategorySuccess(
+      //       total: categories.total,
+      //       categories: categories.modelList,
+      //       offset: 0,
+      //       hasError: false,
+      //       isLoadingMore: false));
+      // } else {
+      //   if (state is! FetchCategorySuccess) {
+      //     DataOutput<Category> categories =
+      //         await _categoryRepository.fetchCategories(offset: 0);
+      //
+      //     List<String> list =
+      //         categories.modelList.map((element) => element.image!).toList();
+      //     await HelperUtils.precacheSVG(list);
+      //
+      //     emit();
+      //   } else {
+      //     await CheckInternet.check(
+      //       onInternet: () async {
+      //         DataOutput<Category> categories =
+      //             await _categoryRepository.fetchCategories(offset: 0);
+      //
+      //         List<String> list = categories.modelList
+      //             .map((element) => element.image!)
+      //             .toList();
+      //         await HelperUtils.precacheSVG(list);
+      //
+      //         emit(FetchCategorySuccess(
+      //             total: categories.total,
+      //             categories: categories.modelList,
+      //             offset: 0,
+      //             hasError: false,
+      //             isLoadingMore: false));
+      //       },
+      //       onNoInternet: () {
+      //         emit(FetchCategorySuccess(
+      //             total: (state as FetchCategorySuccess).total,
+      //             offset: (state as FetchCategorySuccess).offset,
+      //             isLoadingMore: (state as FetchCategorySuccess).isLoadingMore,
+      //             hasError: (state as FetchCategorySuccess).hasError,
+      //             categories: (state as FetchCategorySuccess).categories));
+      //       },
+      //     );
+      //   }
+    } catch (e, st) {
       emit(FetchCategoryFailure(e.toString()));
     }
   }
@@ -233,6 +255,7 @@ class FetchCategoryCubit extends Cubit<FetchCategoryState> with HydratedMixin {
 
   @override
   FetchCategoryState? fromJson(Map<String, dynamic> json) {
+    print("Hydrating");
     try {
       var state = json['cubit_state'];
 
@@ -245,6 +268,7 @@ class FetchCategoryCubit extends Cubit<FetchCategoryState> with HydratedMixin {
 
   @override
   Map<String, dynamic>? toJson(FetchCategoryState state) {
+    print("Storage token ${storageToken}");
     if (state is FetchCategorySuccess) {
       Map<String, dynamic> mapped = state.toMap();
 

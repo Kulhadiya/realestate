@@ -32,7 +32,7 @@ class ProfileSettingFetchSuccess extends ProfileSettingState {
 }
 
 class ProfileSettingFetchFailure extends ProfileSettingState {
-  final String errmsg;
+  final dynamic errmsg;
   ProfileSettingFetchFailure(this.errmsg);
 }
 
@@ -57,14 +57,14 @@ class ProfileSettingCubit extends Cubit<ProfileSettingState>
       fetchProfileSettingFromDb(context, title).then((value) {
         emit(ProfileSettingFetchSuccess(data: value ?? ""));
       }).catchError((e, stack) {
-        emit(ProfileSettingFetchFailure(stack.toString()));
+        emit(ProfileSettingFetchFailure(e));
       });
     } else {
       if (state is! ProfileSettingFetchSuccess) {
         fetchProfileSettingFromDb(context, title).then((value) {
           emit(ProfileSettingFetchSuccess(data: value ?? ""));
         }).catchError((e, stack) {
-          emit(ProfileSettingFetchFailure(stack.toString()));
+          emit(ProfileSettingFetchFailure(e));
         });
       } else {
         emit(

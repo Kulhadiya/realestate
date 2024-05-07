@@ -19,9 +19,10 @@ class ThrottleInterceptor extends Interceptor {
     // Check if the last request for this API endpoint was made within the specified interval
     if (_isRequestThrottled(apiEndpointKey)) {
       // Do not proceed with the request
-      handler.reject(DioError(
+      handler.reject(DioException(
         requestOptions: options,
-        error: 'Request throttled. Please wait before making another request.',
+        error:
+            'Request throttled. Please wait before making another request. $apiEndpointKey',
       ));
       return;
     }
@@ -38,7 +39,7 @@ class ThrottleInterceptor extends Interceptor {
       DateTime lastRequestTime = _lastRequestTimestamps[apiEndpointKey]!;
       DateTime currentTime = DateTime.now();
       int elapsedTime = currentTime.difference(lastRequestTime).inMilliseconds;
-
+      print("Elapsed time is $lastRequestTime $elapsedTime");
       // Check if the elapsed time is less than the minimum interval
       return elapsedTime < minInterval;
     }

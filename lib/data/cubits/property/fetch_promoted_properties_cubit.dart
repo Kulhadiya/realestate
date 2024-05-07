@@ -1,14 +1,13 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-import 'package:ebroker/Ui/screens/proprties/viewAll.dart';
-import 'package:ebroker/utils/Network/networkAvailability.dart';
+import 'package:ebroker/ui/screens/proprties/viewAll.dart';
+import 'package:ebroker/utils/Network/cacheManger.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
-import '../../../settings.dart';
-import '../../Repositories/property_repository.dart';
 import '../../model/data_output.dart';
 import '../../model/property_model.dart';
+import '../../repositories/property_repository.dart';
 
 abstract class FetchPromotedPropertiesState {}
 
@@ -98,99 +97,53 @@ class FetchPromotedPropertiesFailure extends FetchPromotedPropertiesState
 class FetchPromotedPropertiesCubit extends Cubit<FetchPromotedPropertiesState>
     with HydratedMixin
     implements PropertyCubitWireframe {
-  FetchPromotedPropertiesCubit() : super(FetchPromotedPropertiesInitial());
+  FetchPromotedPropertiesCubit() : super(FetchPromotedPropertiesInitial()) {
+    hydrate();
+  }
 
   final PropertyRepository _propertyRepository = PropertyRepository();
 
   @override
   Future<void> fetch({bool? forceRefresh, bool? loadWithoutDelay}) async {
-    ///if it is not force refresh
-    if (forceRefresh != true) {
-      ///This will check if state is success so it will delay 5 seconds to load data in background
-      if (state is FetchPromotedPropertiesSuccess) {
-        await Future.delayed(Duration(
-            seconds: loadWithoutDelay == true
-                ? 0
-                : AppSettings.hiddenAPIProcessDelay));
-      } else {
-        //if state is not success it will show shimmer
-        emit(FetchPromotedPropertiesInProgress());
-      }
-    } else {
-      emit(FetchPromotedPropertiesInProgress());
-    }
-
+    print("State is $state");
     try {
-      ///This will call api instantly when its force refresh
-      if (forceRefresh == true) {
-        DataOutput<PropertyModel> result =
-            await _propertyRepository.fetchPromotedProperty(
-          offset: 0,
-          sendCityName: true,
-        );
-        emit(
-          FetchPromotedPropertiesSuccess(
-            isLoadingMore: false,
-            loadingMoreError: false,
-            properties: result.modelList,
-            offset: 0,
-            total: result.total,
-          ),
-        );
-      } else {
-        ///And if it is not force refresh and state is not success, like its failed before so it will call API
-        if (state is! FetchPromotedPropertiesSuccess) {
-          DataOutput<PropertyModel> result =
-              await _propertyRepository.fetchPromotedProperty(
-            offset: 0,
-            sendCityName: true,
-          );
-          emit(
-            FetchPromotedPropertiesSuccess(
+      await CacheData().getData(
+          forceRefresh: forceRefresh == true,
+          onProgress: () {
+            emit(FetchPromotedPropertiesInProgress());
+          },
+          delay: loadWithoutDelay == true ? 0 : null,
+          onNetworkRequest: () async {
+            DataOutput<PropertyModel> result =
+                await _propertyRepository.fetchPromotedProperty(
+              offset: 0,
+              sendCityName: true,
+            );
+            return FetchPromotedPropertiesSuccess(
               isLoadingMore: false,
               loadingMoreError: false,
               properties: result.modelList,
               offset: 0,
               total: result.total,
-            ),
-          );
-        } else {
-          await CheckInternet.check(
-            onInternet: () async {
-              ////If it is success state and internet is available it will call API to load new data
-              DataOutput<PropertyModel> result =
-                  await _propertyRepository.fetchPromotedProperty(
-                offset: 0,
-                sendCityName: true,
-              );
-              emit(
-                FetchPromotedPropertiesSuccess(
-                  isLoadingMore: false,
-                  loadingMoreError: false,
-                  properties: result.modelList,
-                  offset: 0,
-                  total: result.total,
-                ),
-              );
-            },
-            onNoInternet: () {
-              ///if there is no internet so it will load cached data
-              emit(
-                FetchPromotedPropertiesSuccess(
-                    total: (state as FetchPromotedPropertiesSuccess).total,
-                    offset: (state as FetchPromotedPropertiesSuccess).offset,
-                    isLoadingMore:
-                        (state as FetchPromotedPropertiesSuccess).isLoadingMore,
-                    loadingMoreError: (state as FetchPromotedPropertiesSuccess)
-                        .loadingMoreError,
-                    properties:
-                        (state as FetchPromotedPropertiesSuccess).properties),
-              );
-            },
-          );
-        }
-      }
+            );
+          },
+          onOfflineData: () {
+            return FetchPromotedPropertiesSuccess(
+                total: (state as FetchPromotedPropertiesSuccess).total,
+                offset: (state as FetchPromotedPropertiesSuccess).offset,
+                isLoadingMore:
+                    (state as FetchPromotedPropertiesSuccess).isLoadingMore,
+                loadingMoreError:
+                    (state as FetchPromotedPropertiesSuccess).loadingMoreError,
+                properties:
+                    (state as FetchPromotedPropertiesSuccess).properties);
+          },
+          onSuccess: (data) {
+            emit(data);
+          },
+          hasData: state is FetchPromotedPropertiesSuccess);
     } catch (e) {
+      print("Promoted properties $e");
       emit(FetchPromotedPropertiesFailure(e.toString()));
     }
   }

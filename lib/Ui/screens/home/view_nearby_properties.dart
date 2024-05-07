@@ -1,15 +1,6 @@
-import 'package:ebroker/Ui/screens/home/Widgets/property_gradient_card.dart';
-import 'package:ebroker/data/cubits/property/fetch_nearby_property_cubit.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/ui/screens/home/Widgets/property_gradient_card.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../data/model/property_model.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/hive_utils.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/Erros/no_data_found.dart';
-import '../widgets/Erros/something_went_wrong.dart';
 
 class NearbyAllPropertiesScreen extends StatefulWidget {
   const NearbyAllPropertiesScreen({super.key});

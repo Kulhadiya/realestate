@@ -1,16 +1,8 @@
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/utils/admob/bannerAdLoadWidget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import '../../../app/routes.dart';
-import '../../../data/cubits/category/fetch_category_cubit.dart';
 import '../../../data/model/category.dart';
-import '../../../utils/AdMob/bannerAdLoadWidget.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/constant.dart';
-import '../../../utils/helper_utils.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
 
 class CategoryList extends StatefulWidget {
   final String? from;
@@ -56,9 +48,7 @@ class _CategoryListState extends State<CategoryList>
         child: BannerAdWidget(bannerSize: AdSize.banner),
       ),
       body: BlocConsumer<FetchCategoryCubit, FetchCategoryState>(
-        listener: ((context, state) {
-          // if (state is FetchCategorySuccess) {}
-        }),
+        listener: ((context, state) {}),
         builder: (context, state) {
           if (state is FetchCategoryInProgress) {
             return UiUtils.progress();
@@ -119,10 +109,12 @@ class _CategoryListState extends State<CategoryList>
                                               ? context.color.tertiaryColor
                                               : null)),
                                   const SizedBox(height: 5),
-                                  Text(category.category!,
-                                      textAlign: TextAlign.center,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis)
+                                  Text(
+                                    category.category!,
+                                    textAlign: TextAlign.center,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  )
                                 ]),
                           ),
                         ),

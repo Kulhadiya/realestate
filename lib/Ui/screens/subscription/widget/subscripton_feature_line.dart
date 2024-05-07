@@ -1,4 +1,4 @@
-import 'package:ebroker/Ui/screens/subscription/widget/package_tile.dart';
+import 'package:ebroker/ui/screens/subscription/widget/package_tile.dart';
 import 'package:ebroker/utils/Extensions/extensions.dart';
 import 'package:ebroker/utils/responsiveSize.dart';
 import 'package:flutter/material.dart';

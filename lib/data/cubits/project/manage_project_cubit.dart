@@ -1,4 +1,4 @@
-import 'package:ebroker/data/Repositories/project_repository.dart';
+import 'package:ebroker/data/repositories/project_repository.dart';
 import 'package:ebroker/data/model/project_model.dart';
 
 import '../../../exports/main_export.dart';

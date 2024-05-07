@@ -1,67 +1,35 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first, use_build_context_synchronously
-import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
 
-import 'package:ebroker/Ui/screens/chat/chat_screen.dart';
-import 'package:ebroker/Ui/screens/proprties/Property%20tab/sell_rent_screen.dart';
-import 'package:ebroker/Ui/screens/proprties/widgets/report_property_widget.dart';
-import 'package:ebroker/Ui/screens/widgets/blurred_dialoge_box.dart';
-import 'package:ebroker/Ui/screens/widgets/like_button_widget.dart';
-import 'package:ebroker/Ui/screens/widgets/panaroma_image_view.dart';
-import 'package:ebroker/Ui/screens/widgets/read_more_text.dart';
-import 'package:ebroker/app/routes.dart';
-import 'package:ebroker/data/Repositories/interest_repository.dart';
-import 'package:ebroker/data/Repositories/subscription_repository.dart';
 import 'package:ebroker/data/cubits/Report/property_report_cubit.dart';
-import 'package:ebroker/data/cubits/category/fetch_category_cubit.dart';
-import 'package:ebroker/data/cubits/chatCubits/delete_message_cubit.dart';
-import 'package:ebroker/data/cubits/chatCubits/load_chat_messages.dart';
-import 'package:ebroker/data/cubits/enquiry/store_enqury_id.dart';
-import 'package:ebroker/data/cubits/favorite/add_to_favorite_cubit.dart';
 import 'package:ebroker/data/cubits/property/Interest/change_interest_in_property_cubit.dart';
 import 'package:ebroker/data/cubits/property/delete_property_cubit.dart';
-import 'package:ebroker/data/cubits/property/fetch_my_properties_cubit.dart';
-import 'package:ebroker/data/cubits/property/set_property_view_cubit.dart';
 import 'package:ebroker/data/cubits/property/update_property_status.dart';
-import 'package:ebroker/data/cubits/subscription/get_subsctiption_package_limits_cubit.dart';
-import 'package:ebroker/data/model/data_output.dart';
 import 'package:ebroker/data/model/interested_user_model.dart';
-import 'package:ebroker/data/model/property_model.dart';
-import 'package:ebroker/utils/AppIcon.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/api.dart';
-import 'package:ebroker/utils/constant.dart';
-import 'package:ebroker/utils/hive_utils.dart';
-import 'package:ebroker/utils/responsiveSize.dart';
+import 'package:ebroker/data/repositories/interest_repository.dart';
+import 'package:ebroker/data/repositories/subscription_repository.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/ui/screens/chat/chat_screen.dart';
+import 'package:ebroker/ui/screens/proprties/Property%20tab/sell_rent_screen.dart';
+import 'package:ebroker/ui/screens/proprties/widgets/report_property_widget.dart';
+import 'package:ebroker/ui/screens/widgets/like_button_widget.dart';
+import 'package:ebroker/ui/screens/widgets/panaroma_image_view.dart';
+import 'package:ebroker/ui/screens/widgets/read_more_text.dart';
+import 'package:ebroker/utils/Network/networkAvailability.dart';
 import 'package:ebroker/utils/string_extenstion.dart';
-import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/foundation.dart' as f;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:url_launcher/url_launcher.dart' as urllauncher;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:video_player/video_player.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../../../data/cubits/Interested/get_interested_user_cubit.dart';
-import '../../../data/cubits/chatCubits/send_message.dart';
-import '../../../data/cubits/outdoorfacility/fetch_outdoor_facility_list.dart';
-import '../../../data/cubits/system/fetch_system_settings_cubit.dart';
-import '../../../data/helper/widgets.dart';
 import '../../../data/model/category.dart';
-import '../../../settings.dart';
 import '../../../utils/AdMob/interstitialAdManager.dart';
-import '../../../utils/guestChecker.dart';
-import '../../../utils/helper_utils.dart';
-import '../../../utils/ui_utils.dart';
 import '../analytics/analytics_screen.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
 import '../widgets/all_gallary_image.dart';
 import '../widgets/video_view_screen.dart';
 
@@ -394,9 +362,9 @@ class PropertyDetailsState extends State<PropertyDetails>
           ),
           child: SafeArea(
               child: BlocListener<GetSubsctiptionPackageLimitsCubit,
-                  GetSubsctiptionPackageLimitsState>(
+                  GetSubscriptionPackageLimitsState>(
             listener: (context, state) {
-              if (state is GetSubsctiptionPackageLimitsSuccess) {
+              if (state is GetSubscriptionPackageLimitsSuccess) {
                 isPremiumUser = state.packageLimit.isPremium;
                 setState(() {});
               }
@@ -895,7 +863,6 @@ class PropertyDetailsState extends State<PropertyDetails>
                                                   const EdgeInsets.fromLTRB(
                                                       0, 8, 8, 8),
                                               child: SizedBox(
-                                                // height: 37,
                                                 child: Row(
                                                     crossAxisAlignment:
                                                         CrossAxisAlignment
@@ -982,10 +949,18 @@ class PropertyDetailsState extends State<PropertyDetails>
                                                           } else if (parameter
                                                                   ?.value
                                                               is List) ...{
-                                                            Text((parameter
-                                                                        ?.value
-                                                                    as List)
-                                                                .join(","))
+                                                            Container(
+                                                              color: Colors.red,
+                                                              width: MediaQuery.of(
+                                                                          context)
+                                                                      .size
+                                                                      .width *
+                                                                  0.7,
+                                                              child: Text((parameter
+                                                                          ?.value
+                                                                      as List)
+                                                                  .join(",")),
+                                                            )
                                                           } else ...[
                                                             if (parameter
                                                                     ?.typeOfParameter ==
@@ -1005,13 +980,23 @@ class PropertyDetailsState extends State<PropertyDetails>
                                                                     ),
                                                               )
                                                             ] else ...[
-                                                              Text("${parameter?.value}")
-                                                                  .size(14)
-                                                                  .bold(
-                                                                    weight:
-                                                                        FontWeight
-                                                                            .w600,
-                                                                  )
+                                                              ConstrainedBox(
+                                                                constraints:
+                                                                    BoxConstraints(
+                                                                  maxWidth: MediaQuery.of(
+                                                                              context)
+                                                                          .size
+                                                                          .width *
+                                                                      0.7,
+                                                                ),
+                                                                child: Text(
+                                                                        "${parameter?.value}")
+                                                                    .size(14)
+                                                                    .bold(
+                                                                      weight: FontWeight
+                                                                          .w600,
+                                                                    ),
+                                                              )
                                                             ]
                                                           ]
                                                         ],
@@ -1454,7 +1439,7 @@ class PropertyDetailsState extends State<PropertyDetails>
                       return SizedBox(
                         height: context.screenHeight,
                         child: AnimatedOpacity(
-                          duration: Duration(milliseconds: 300),
+                          duration: const Duration(milliseconds: 300),
                           opacity: value == true ? 1 : 0,
                           child: IgnorePointer(
                             ignoring: !value,
@@ -1549,11 +1534,12 @@ class PropertyDetailsState extends State<PropertyDetails>
                                                       color: context
                                                           .color.secondaryColor,
                                                       elevation: 0,
-                                                      child: Text("Subscribe")
+                                                      child: const Text(
+                                                              "Subscribe")
                                                           .color(context.color
                                                               .tertiaryColor),
                                                     ),
-                                                    SizedBox(
+                                                    const SizedBox(
                                                       height: 15,
                                                     ),
                                                     // bottomNavBar()
@@ -1570,7 +1556,7 @@ class PropertyDetailsState extends State<PropertyDetails>
                           ),
                         ),
                       );
-                      return SizedBox.shrink();
+                      return const SizedBox.shrink();
                     })
               ],
             ),
@@ -1718,8 +1704,7 @@ class PropertyDetailsState extends State<PropertyDetails>
                               .get(property!.category!.id!);
 
 // Extract parameter IDs from category
-                          List<dynamic>? parameterIds =
-                              category.parameterTypes?['parameters'];
+                          List<dynamic>? parameterIds = category.parameterTypes;
 
 // Map parameters
                           List<dynamic>? mappedParameters =
@@ -1739,11 +1724,10 @@ class PropertyDetailsState extends State<PropertyDetails>
                               category: property?.category!.category,
                               id: property?.category?.id!.toString(),
                               image: property?.category?.image,
-                              parameterTypes: {"parameters": mappedParameters},
+                              parameterTypes: mappedParameters,
                             )
                           });
 
-                          // log(" oiasdjalwd j$map");
                           Navigator.pushNamed(
                               context, Routes.addPropertyDetailsScreen,
                               arguments: {
@@ -1881,33 +1865,6 @@ class PropertyDetailsState extends State<PropertyDetails>
               ],
             ),
           ),
-
-          // ClipRRect(
-          //   child: BackdropFilter(
-          //     filter: ImageFilter.blur(sigmaY: 3, sigmaX: 3),
-          //     child: Container(
-          //       color: Colors.black.withOpacity(0.2),
-          //       child: MaterialButton(
-          //         minWidth: double.infinity,
-          //         height: double.infinity,
-          //         onPressed: () {},
-          //         child: Row(
-          //           mainAxisAlignment: MainAxisAlignment.center,
-          //           children: [
-          //             Icon(
-          //               Icons.lock,
-          //               color: context.color.secondaryColor,
-          //             ),
-          //             Text("Subscribe")
-          //                 .bold(weight: FontWeight.w700)
-          //                 .size(context.font.larger)
-          //                 .color(Colors.white),
-          //           ],
-          //         ),
-          //       ),
-          //     ),
-          //   ),
-          // )
         ],
       ),
     );
@@ -2089,7 +2046,6 @@ class PropertyDetailsState extends State<PropertyDetails>
   }
 
   _onTapCall() async {
-    print("AAA $isPremiumUser");
     if (isPremiumProperty && !isPremiumUser) {
       GuestChecker.check(onNotGuest: () {
         shouldShowSubscriptionOverlay.value = true;
@@ -2101,7 +2057,7 @@ class PropertyDetailsState extends State<PropertyDetails>
 
     var contactNumber = widget.property?.customerNumber;
 
-    var url = Uri.parse("tel: $contactNumber"); //{contactNumber.data}
+    var url = Uri.parse("tel: +$contactNumber"); //{contactNumber.data}
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {
@@ -2123,7 +2079,7 @@ class PropertyDetailsState extends State<PropertyDetails>
 
     var contactNumber = widget.property?.customerNumber;
 
-    var url = Uri.parse("sms:$contactNumber"); //{contactNumber.data}
+    Uri url = Uri.parse("sms: +$contactNumber");
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {
@@ -2132,38 +2088,46 @@ class PropertyDetailsState extends State<PropertyDetails>
   }
 
   _onTapChat() {
-    GuestChecker.check(onNotGuest: () {
-      if (isPremiumProperty && !isPremiumUser) {
-        shouldShowSubscriptionOverlay.value = true;
-        return;
-      }
-      Navigator.push(context, BlurredRouter(
-        builder: (context) {
-          return MultiBlocProvider(
-            providers: [
-              BlocProvider(
-                create: (context) => SendMessageCubit(),
-              ),
-              BlocProvider(
-                create: (context) => LoadChatMessagesCubit(),
-              ),
-              BlocProvider(
-                create: (context) => DeleteMessageCubit(),
-              ),
-            ],
-            child: ChatScreen(
-              profilePicture: property?.customerProfile ?? "",
-              userName: property?.customerName ?? "",
-              propertyImage: property?.titleImage ?? "",
-              proeprtyTitle: property?.title ?? "",
-              userId: (property?.addedBy).toString(),
-              from: "property",
-              propertyId: (property?.id).toString(),
-            ),
-          );
-        },
-      ));
-    });
+    CheckInternet.check(
+      onInternet: () {
+        GuestChecker.check(onNotGuest: () {
+          if (isPremiumProperty && !isPremiumUser) {
+            shouldShowSubscriptionOverlay.value = true;
+            return;
+          }
+          Navigator.push(context, BlurredRouter(
+            builder: (context) {
+              return MultiBlocProvider(
+                providers: [
+                  BlocProvider(
+                    create: (context) => SendMessageCubit(),
+                  ),
+                  BlocProvider(
+                    create: (context) => LoadChatMessagesCubit(),
+                  ),
+                  BlocProvider(
+                    create: (context) => DeleteMessageCubit(),
+                  ),
+                ],
+                child: ChatScreen(
+                  profilePicture: property?.customerProfile ?? "",
+                  userName: property?.customerName ?? "",
+                  propertyImage: property?.titleImage ?? "",
+                  proeprtyTitle: property?.title ?? "",
+                  userId: (property?.addedBy).toString(),
+                  from: "property",
+                  propertyId: (property?.id).toString(),
+                ),
+              );
+            },
+          ));
+        });
+      },
+      onNoInternet: () {
+        HelperUtils.showSnackBarMessage(
+            context, "noInternet".translate(context));
+      },
+    );
   }
 }
 

@@ -1,15 +1,6 @@
-import 'dart:ui';
-
-import 'package:ebroker/data/model/app_settings_datamodel.dart';
 import 'package:ebroker/exports/main_export.dart';
-import 'package:ebroker/utils/AppIcon.dart';
 import 'package:ebroker/utils/hive_keys.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive/hive.dart';
-
-import '../Ui/Theme/theme.dart';
-import '../utils/api.dart';
-import '../utils/network_to_localsvg.dart';
 
 AppSettingsDataModel fallbackSettingAppSettings = AppSettingsDataModel(
   appHomeScreen: AppIcons.fallbackHomeLogo,
@@ -25,10 +16,12 @@ AppSettingsDataModel fallbackSettingAppSettings = AppSettingsDataModel(
 
 ///DO not touch this
 class LoadAppSettings {
-  Future<void> load() async {
+  Future<void> load(bool initBox) async {
     try {
       try {
-        await HiveUtils.initBoxes();
+        if (initBox) {
+          await HiveUtils.initBoxes();
+        }
         Map<String, dynamic> response =
             await Api.get(url: Api.getAppSettings, queryParameters: {
           if (HiveUtils.getUserId() != null) "user_id": HiveUtils.getUserId()

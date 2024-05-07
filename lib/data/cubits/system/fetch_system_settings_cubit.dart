@@ -1,9 +1,11 @@
-import 'package:ebroker/exports/main_export.dart';
-import 'package:ebroker/utils/Encryption/rsa.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'dart:developer';
 
-import '../../Repositories/system_repository.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/utils/Network/cacheManger.dart';
+import 'package:ebroker/utils/encryption/rsa.dart';
+
 import '../../model/system_settings_model.dart';
+import '../../repositories/system_repository.dart';
 
 abstract class FetchSystemSettingsState {}
 
@@ -38,98 +40,56 @@ class FetchSystemSettingsFailure extends FetchSystemSettingsState {
 
 class FetchSystemSettingsCubit extends Cubit<FetchSystemSettingsState>
     with HydratedMixin {
-  FetchSystemSettingsCubit() : super(FetchSystemSettingsInitial());
+  FetchSystemSettingsCubit() : super(FetchSystemSettingsInitial()) {
+    hydrate();
+  }
   final SystemRepository _systemRepository = SystemRepository();
   Future<void> fetchSettings(
       {required bool isAnonymouse, bool? forceRefresh}) async {
     try {
-      if (forceRefresh != true) {
-        if (state is FetchSystemSettingsSuccess) {
-          await Future.delayed(
-              const Duration(seconds: AppSettings.hiddenAPIProcessDelay));
-        } else {
-          emit(FetchSystemSettingsInProgress());
-        }
-      } else {
-        emit(FetchSystemSettingsInProgress());
-      }
+      await CacheData().getData(
+          forceRefresh: forceRefresh == true,
+          delay: 0,
+          onProgress: () {
+            emit(FetchSystemSettingsInProgress());
+          },
+          onNetworkRequest: () async {
+            try {
+              Map settings = await _systemRepository.fetchSystemSettings(
+                isAnonymouse: isAnonymouse,
+              );
+              log("FOUND NEW SETTINGS $settings");
+              return settings;
+            } catch (e) {
+              rethrow;
+            }
+          },
+          onOfflineData: () {
+            return (state as FetchSystemSettingsSuccess).settings;
+          },
+          onSuccess: (Map<dynamic, dynamic>? data) {
+            if (data == null) return;
+            Constant.currencySymbol =
+                _getSetting(data, SystemSetting.currencySymball);
+            Constant.googlePlaceAPIkey = RSAEncryption().decrypt(
+                privateKey: Constant.keysDecryptionPasswordRSA,
+                encryptedData: data['data']['place_api_key']);
+            Constant.isAdmobAdsEnabled =
+                (data['data']['show_admob_ads'] == "1");
+            Constant.adaptThemeColorSvg = (data['data']['svg_clr'] == "1");
+            Constant.admobBannerAndroid =
+                data['data']?['android_banner_ad_id'] ?? "";
+            Constant.admobBannerIos = data['data']?['ios_banner_ad_id'] ?? "";
 
-      if (forceRefresh == true) {
-        Map settings = await _systemRepository.fetchSystemSettings(
-            isAnonymouse: isAnonymouse);
+            Constant.admobInterstitialAndroid =
+                data['data']?['android_interstitial_ad_id'] ?? "";
+            Constant.admobInterstitialIos =
+                data['data']?['ios_interstitial_ad_id'] ?? "";
 
-        Constant.currencySymbol =
-            _getSetting(settings, SystemSetting.currencySymball);
-        Constant.googlePlaceAPIkey = RSAEncryption().decrypt(
-            privateKey: Constant.keysDecryptionPasswordRSA,
-            encryptedData: settings['data']['place_api_key']);
-        Constant.isAdmobAdsEnabled =
-            (settings['data']['show_admob_ads'] == "1");
-        Constant.adaptThemeColorSvg = (settings['data']['svg_clr'] == "1");
-        Constant.admobBannerAndroid =
-            settings['data']?['android_banner_ad_id'] ?? "";
-        Constant.admobBannerIos = settings['data']?['ios_banner_ad_id'] ?? "";
-
-        Constant.admobInterstitialAndroid =
-            settings['data']?['android_interstitial_ad_id'] ?? "";
-        Constant.admobInterstitialIos =
-            settings['data']?['ios_interstitial_ad_id'] ?? "";
-        emit(FetchSystemSettingsSuccess(settings: settings));
-      } else {
-        if (state is! FetchSystemSettingsSuccess) {
-          Map settings = await _systemRepository.fetchSystemSettings(
-              isAnonymouse: isAnonymouse);
-          Constant.currencySymbol =
-              _getSetting(settings, SystemSetting.currencySymball);
-          Constant.googlePlaceAPIkey = RSAEncryption().decrypt(
-              privateKey: Constant.keysDecryptionPasswordRSA,
-              encryptedData: settings['data']['place_api_key']);
-          Constant.isAdmobAdsEnabled =
-              (settings['data']['show_admob_ads'] == "1");
-          Constant.adaptThemeColorSvg = (settings['data']['svg_clr'] == "1");
-          Constant.admobBannerAndroid =
-              settings['data']['android_banner_ad_id'] ?? "";
-          Constant.admobBannerIos = settings['data']['ios_banner_ad_id'] ?? "";
-
-          Constant.admobInterstitialAndroid =
-              settings['data']['android_interstitial_ad_id'] ?? "";
-          Constant.admobInterstitialIos =
-              settings['data']['ios_interstitial_ad_id'] ?? "";
-
-          emit(FetchSystemSettingsSuccess(settings: settings));
-        } else {
-          Constant.googlePlaceAPIkey = RSAEncryption().decrypt(
-              privateKey: Constant.keysDecryptionPasswordRSA,
-              encryptedData: (state as FetchSystemSettingsSuccess)
-                  .settings['data']['place_api_key']);
-          Constant.currencySymbol = (state as FetchSystemSettingsSuccess)
-                  .settings['data']['currency_symbol'] ??
-              "";
-          Constant.isAdmobAdsEnabled = ((state as FetchSystemSettingsSuccess)
-                  .settings['data']['show_admob_ads'] ==
-              "1");
-          Constant.admobBannerAndroid = (state as FetchSystemSettingsSuccess)
-                  .settings['data']['android_banner_ad_id'] ??
-              "";
-          Constant.admobBannerIos = (state as FetchSystemSettingsSuccess)
-                  .settings['data']['ios_banner_ad_id'] ??
-              "";
-          Constant.adaptThemeColorSvg = ((state as FetchSystemSettingsSuccess)
-                  .settings['data']['svg_clr'] ==
-              "1");
-          Constant.admobInterstitialAndroid =
-              (state as FetchSystemSettingsSuccess).settings['data']
-                      ['android_interstitial_ad_id'] ??
-                  "";
-          Constant.admobInterstitialIos = (state as FetchSystemSettingsSuccess)
-                  .settings['data']['ios_interstitial_ad_id'] ??
-              "";
-
-          emit(FetchSystemSettingsSuccess(
-              settings: (state as FetchSystemSettingsSuccess).settings));
-        }
-      }
-    } catch (e) {
+            emit(FetchSystemSettingsSuccess(settings: data));
+          },
+          hasData: (state is FetchSystemSettingsSuccess));
+    } catch (e, st) {
       emit(FetchSystemSettingsFailure(e.toString()));
     }
   }
@@ -182,6 +142,7 @@ class FetchSystemSettingsCubit extends Cubit<FetchSystemSettingsState>
         return fetchSystemSettingsSuccess;
       }
     } catch (e, st) {}
+
     return null;
   }
 

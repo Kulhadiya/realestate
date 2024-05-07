@@ -1,33 +1,25 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
-import 'package:ebroker/Ui/screens/widgets/BottomSheets/choose_location_bottomsheet.dart';
-import 'package:ebroker/app/routes.dart';
-import 'package:ebroker/data/cubits/category/fetch_category_cubit.dart';
-import 'package:ebroker/data/model/category.dart';
-import 'package:ebroker/data/model/propery_filter_model.dart';
-import 'package:ebroker/utils/AdMob/bannerAdLoadWidget.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/responsiveSize.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import '../../data/model/google_place_model.dart';
-import '../../utils/api.dart';
-import '../../utils/constant.dart';
-import '../../utils/ui_utils.dart';
-import 'main_activity.dart';
+import 'package:ebroker/data/model/category.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/ui/screens/widgets/bottom_sheets/choose_location_bottomsheet.dart';
+import 'package:ebroker/utils/admob/bannerAdLoadWidget.dart';
+import 'package:flutter/material.dart';
+
+import '../../data/helper/filter.dart';
 
 dynamic city = "";
 dynamic _state = "";
+
 dynamic country = "";
 
 class FilterScreen extends StatefulWidget {
   final bool? showPropertyType;
+  final FilterApply? selectedFilter;
   const FilterScreen({
     Key? key,
     this.showPropertyType,
+    this.selectedFilter,
   }) : super(key: key);
 
   @override
@@ -37,6 +29,7 @@ class FilterScreen extends StatefulWidget {
     Map? arguments = routeSettings.arguments as Map?;
     return BlurredRouter(
       builder: (_) => FilterScreen(
+        selectedFilter: arguments?['filter'],
         showPropertyType: arguments?['showPropertyType'],
       ),
     );
@@ -44,12 +37,14 @@ class FilterScreen extends StatefulWidget {
 }
 
 class FilterScreenState extends State<FilterScreen> {
+  // List<Filter> filters = [];
+  late FilterApply filter = widget.selectedFilter ?? FilterApply();
+
   TextEditingController minController =
       TextEditingController(text: Constant.propertyFilter?.minPrice);
   TextEditingController maxController =
       TextEditingController(text: Constant.propertyFilter?.maxPrice);
 
-  //String properyType = Constant.valSellBuy;
   String properyType = Constant.propertyFilter?.propertyType ?? "";
   String postedOn = Constant.propertyFilter?.postedSince ??
       Constant.filterAll; // = 2; // 0: last_week   1: yesterday
@@ -66,12 +61,17 @@ class FilterScreenState extends State<FilterScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.selectedFilter == null) {
+      filter.addOrUpdate(PropertyTypeFilter(""));
+      filter.addOrUpdate(PostedSince(PostedSinceDuration.anytime));
+    }
 
     setDefaultVal(isrefresh: false);
   }
 
   void setDefaultVal({bool isrefresh = true}) {
     if (isrefresh) {
+      // filters = [];
       postedOn = Constant.filterAll;
       Constant.propertyFilter = null;
       searchbody[Api.postedSince] = Constant.filterAll;
@@ -119,6 +119,8 @@ class FilterScreenState extends State<FilterScreen> {
       city = place.city;
       country = place.country;
       _state = place.state;
+      filter.addOrUpdate(LocationFilter(
+          city: place.city, country: place.country, state: place.country));
     }
   }
 
@@ -126,7 +128,7 @@ class FilterScreenState extends State<FilterScreen> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        checkFilterValSet();
+        // checkFilterValSet();
         return true;
       },
       child: Scaffold(
@@ -179,21 +181,10 @@ class FilterScreenState extends State<FilterScreen> {
               }
             }
 
-            Constant.propertyFilter = PropertyFilterModel(
-              propertyType: properyType,
-              maxPrice: maxController.text,
-              minPrice: minController.text,
-              categoryId: ((selectedCategory is String)
-                      ? selectedCategory
-                      : selectedCategory?.id) ??
-                  "",
-              postedSince: postedOn,
-              city: city,
-              state: _state,
-              country: country,
-            );
+            filter.addOrUpdate(
+                MinMaxBudget(min: minController.text, max: maxController.text));
 
-            Navigator.pop(context, true);
+            Navigator.pop(context, filter);
           }, buttonTitle: UiUtils.translate(context, "applyFilter")),
         ),
         body: SingleChildScrollView(
@@ -245,6 +236,9 @@ class FilterScreenState extends State<FilterScreen> {
                                   return GestureDetector(
                                     onTap: () {
                                       selectedCategory = categoriesList[index];
+                                      filter.addOrUpdate(CategoryFilter(
+                                          categoriesList[index]!.id!));
+
                                       setState(() {});
                                     },
                                     child: Padding(
@@ -411,6 +405,8 @@ class FilterScreenState extends State<FilterScreen> {
     return GestureDetector(
       onTap: () {
         selectedCategory = null;
+        filter.addOrUpdate(CategoryFilter(null));
+
         setState(() {});
       },
       child: Container(
@@ -433,13 +429,14 @@ class FilterScreenState extends State<FilterScreen> {
     );
   }
 
-  GestureDetector moreCategoriesButton(BuildContext context) {
+  Widget moreCategoriesButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, Routes.categories,
             arguments: {"from": Routes.filterScreen}).then(
           (dynamic value) {
             if (value != null) {
+              filter.addOrUpdate(CategoryFilter(value.id!));
               selectedCategory = value;
               setState(() {});
             }
@@ -462,26 +459,6 @@ class FilterScreenState extends State<FilterScreen> {
     );
   }
 
-  Widget saveFilter() {
-    //save prefs & validate fields & call API
-    return IconButton(
-        onPressed: () {
-          Constant.propertyFilter = PropertyFilterModel(
-            propertyType: properyType,
-            maxPrice: maxController.text,
-            city: city,
-            state: _state,
-            country: country,
-            minPrice: minController.text,
-            categoryId: selectedCategory?.id ?? "",
-            postedSince: postedOn,
-          );
-
-          Navigator.pop(context, true);
-        },
-        icon: const Icon(Icons.check));
-  }
-
   Widget buyORsellOption() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -501,19 +478,26 @@ class FilterScreenState extends State<FilterScreen> {
                   child: SizedBox(
                     height: 46.rh(context),
                     child: UiUtils.buildButton(context, onPressed: () {
-                      if (properyType == Constant.valSellBuy) {
-                        searchbody[Api.propertyType] = "";
-                        properyType = "";
+                      if (filter.check<PropertyTypeFilter>().type ==
+                          Constant.valSellBuy) {
+                        filter.addOrUpdate(
+                          PropertyTypeFilter(""),
+                        );
                         setState(() {});
                       } else {
-                        setPropertyType(Constant.valSellBuy);
+                        filter.addOrUpdate(
+                          PropertyTypeFilter(Constant.valSellBuy),
+                        );
+                        setState(() {});
                       }
                     },
                         showElevation: false,
-                        textColor: properyType == Constant.valSellBuy
+                        textColor: filter.check<PropertyTypeFilter>().type ==
+                                Constant.valSellBuy
                             ? context.color.buttonColor
                             : context.color.textColorDark,
-                        buttonColor: properyType == Constant.valSellBuy
+                        buttonColor: filter.check<PropertyTypeFilter>().type ==
+                                Constant.valSellBuy
                             ? Theme.of(context).colorScheme.tertiaryColor
                             : Theme.of(context)
                                 .colorScheme
@@ -529,24 +513,32 @@ class FilterScreenState extends State<FilterScreen> {
                   child: SizedBox(
                       height: 46.rh(context),
                       child: UiUtils.buildButton(context, onPressed: () {
-                        if (properyType == Constant.valRent) {
-                          searchbody[Api.propertyType] = "";
-                          properyType = "";
+                        if (filter.check<PropertyTypeFilter>().type ==
+                            Constant.valRent) {
+                          filter.addOrUpdate(
+                            PropertyTypeFilter(""),
+                          );
                           setState(() {});
                         } else {
-                          setPropertyType(Constant.valRent);
+                          filter.addOrUpdate(
+                            PropertyTypeFilter(Constant.valRent),
+                          );
+                          setState(() {});
                         }
                       },
                           showElevation: false,
-                          textColor: properyType == Constant.valRent
+                          textColor: filter.check<PropertyTypeFilter>().type ==
+                                  Constant.valRent
                               ? context.color.buttonColor
                               : context.color.textColorDark,
-                          buttonColor: properyType == Constant.valRent
-                              ? Theme.of(context).colorScheme.tertiaryColor
-                              : Theme.of(context)
-                                  .colorScheme
-                                  .tertiaryColor
-                                  .withOpacity(0.0),
+                          buttonColor:
+                              filter.check<PropertyTypeFilter>().type ==
+                                      Constant.valRent
+                                  ? Theme.of(context).colorScheme.tertiaryColor
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .tertiaryColor
+                                      .withOpacity(0.0),
                           fontSize: context.font.large,
                           buttonTitle: UiUtils.translate(context,
                               UiUtils.translate(context, "forRentLbl")))),
@@ -573,24 +565,109 @@ class FilterScreenState extends State<FilterScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: <Widget>[
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              minMaxTFF(
-                UiUtils.translate(context, "minLbl"),
-              )
-            ],
-          ),
+          child: Container(
+              padding: const EdgeInsetsDirectional.only(end: 5),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  color: Theme.of(context).colorScheme.backgroundColor),
+              child: TextFormField(
+                  controller: minController,
+                  autovalidateMode: AutovalidateMode.always,
+                  textInputAction: TextInputAction.done,
+                  validator: (value) {
+                    if (value.toString().isEmpty ||
+                        maxController.text.isEmpty) {
+                      return null;
+                    }
+                    if (num.parse(value!) >= num.parse(maxController.text!)) {
+                      return "Enter smaller than ${maxController.text}";
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                      isDense: true,
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              BorderSide(color: context.color.tertiaryColor)),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              BorderSide(color: context.color.tertiaryColor)),
+                      labelStyle: TextStyle(color: context.color.tertiaryColor),
+                      hintText: "00",
+                      label: Text(
+                        "minLbl".translate(context),
+                      ),
+                      prefixText: '${Constant.currencySymbol} ',
+                      prefixStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.tertiaryColor),
+                      fillColor: Theme.of(context).colorScheme.secondaryColor,
+                      border: const OutlineInputBorder()),
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.tertiaryColor),
+                  /* onSubmitted: () */
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly])),
         ),
-        const SizedBox(height: 10),
+
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              minMaxTFF(UiUtils.translate(context, "maxLbl")),
-            ],
-          ),
+          child: Container(
+              padding: EdgeInsetsDirectional.only(end: 5),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                  borderRadius: const BorderRadius.all(Radius.circular(10)),
+                  color: Theme.of(context).colorScheme.backgroundColor),
+              child: TextFormField(
+                  autovalidateMode: AutovalidateMode.always,
+                  validator: (value) {
+                    if (value.toString().isEmpty ||
+                        minController.text.isEmpty) {
+                      return null;
+                    }
+                    if (num.parse(value!) <= num.parse(minController.text!)) {
+                      return "Enter bigger than ${minController.text}";
+                    }
+                    return null;
+                  },
+                  controller: maxController,
+                  textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                      isDense: true,
+                      focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              BorderSide(color: context.color.tertiaryColor)),
+                      enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide:
+                              BorderSide(color: context.color.tertiaryColor)),
+                      labelStyle: TextStyle(color: context.color.tertiaryColor),
+                      hintText: "00",
+                      label: Text(
+                        "maxLbl".translate(context),
+                      ),
+                      prefixText: '${Constant.currencySymbol} ',
+                      prefixStyle: TextStyle(
+                          color: Theme.of(context).colorScheme.tertiaryColor),
+                      fillColor: Theme.of(context).colorScheme.secondaryColor,
+                      border: const OutlineInputBorder()),
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.tertiaryColor),
+                  /* onSubmitted: () */
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly])),
         ),
+        // const SizedBox(height: 10),
+        // Expanded(
+        //   child: Column(
+        //     crossAxisAlignment: CrossAxisAlignment.start,
+        //     children: <Widget>[
+        //       // minMaxTFF(UiUtils.translate(context, "maxLbl")),
+        //     ],
+        //   ),
+        // ),
       ],
     );
   }
@@ -689,14 +766,17 @@ class FilterScreenState extends State<FilterScreen> {
                 autoWidth: true,
                 border:
                     BorderSide(color: context.color.borderColor, width: 1.5),
-                buttonColor: searchbody[Api.postedSince] == Constant.filterAll
+                buttonColor: filter.check<PostedSince>().since.value ==
+                        Constant.filterAll
                     ? context.color.tertiaryColor
                     : context.color.tertiaryColor.withOpacity(0.05),
-                textColor: searchbody[Api.postedSince] == Constant.filterAll
+                textColor: filter.check<PostedSince>().since.value ==
+                        Constant.filterAll
                     ? context.color.secondaryColor
                     : context.color.textColorDark,
                 buttonTitle: UiUtils.translate(context, "anytimeLbl"),
                 onPressed: () {
+                  filter.addOrUpdate(PostedSince(PostedSinceDuration.anytime));
                   onClickPosted(
                     Constant.filterAll,
                   );
@@ -712,17 +792,19 @@ class FilterScreenState extends State<FilterScreen> {
                 autoWidth: true,
                 border:
                     BorderSide(color: context.color.borderColor, width: 1.5),
-                textColor:
-                    searchbody[Api.postedSince] == Constant.filterLastWeek
-                        ? context.color.secondaryColor
-                        : context.color.textColorDark,
+                textColor: filter.check<PostedSince>().since.value ==
+                        Constant.filterLastWeek
+                    ? context.color.secondaryColor
+                    : context.color.textColorDark,
                 showElevation: false,
-                buttonColor:
-                    searchbody[Api.postedSince] == Constant.filterLastWeek
-                        ? context.color.tertiaryColor
-                        : context.color.tertiaryColor.withOpacity(0.05),
+                buttonColor: filter.check<PostedSince>().since.value ==
+                        Constant.filterLastWeek
+                    ? context.color.tertiaryColor
+                    : context.color.tertiaryColor.withOpacity(0.05),
                 buttonTitle: UiUtils.translate(context, "lastWeekLbl"),
                 onPressed: () {
+                  filter.addOrUpdate(PostedSince(PostedSinceDuration.lastWeek));
+                  setState(() {});
                   onClickPosted(
                     Constant.filterLastWeek,
                   );
@@ -738,16 +820,19 @@ class FilterScreenState extends State<FilterScreen> {
                 border:
                     BorderSide(color: context.color.borderColor, width: 1.5),
                 showElevation: false,
-                textColor:
-                    searchbody[Api.postedSince] == Constant.filterYesterday
-                        ? context.color.secondaryColor
-                        : context.color.textColorDark,
-                buttonColor:
-                    searchbody[Api.postedSince] == Constant.filterYesterday
-                        ? context.color.tertiaryColor
-                        : context.color.tertiaryColor.withOpacity(0.05),
+                textColor: filter.check<PostedSince>().since.value ==
+                        Constant.filterYesterday
+                    ? context.color.secondaryColor
+                    : context.color.textColorDark,
+                buttonColor: filter.check<PostedSince>().since.value ==
+                        Constant.filterYesterday
+                    ? context.color.tertiaryColor
+                    : context.color.tertiaryColor.withOpacity(0.05),
                 buttonTitle: UiUtils.translate(context, "yesterdayLbl"),
                 onPressed: () {
+                  filter
+                      .addOrUpdate(PostedSince(PostedSinceDuration.yesterday));
+
                   onClickPosted(
                     Constant.filterYesterday,
                   );
@@ -768,6 +853,7 @@ class FilterScreenState extends State<FilterScreen> {
     }
 
     postedOn = val;
+
     setState(() {});
   }
 }

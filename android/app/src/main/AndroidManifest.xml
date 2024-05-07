@@ -44,11 +44,11 @@
 
   <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="API KEY" />
+            android:value="KEY HERE" />
 
        <meta-data
            android:name="com.google.android.gms.ads.APPLICATION_ID"
-           android:value="APP ID"/>
+           android:value="KEY HERE"/>
 
         <activity
             android:name=".MainActivity"
@@ -80,9 +80,10 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Accepts URIs that begin with YOUR_SCHEME://YOUR_HOST -->
                 <data
                     android:scheme="https"
-                    android:host="YOUR WEB URL" />
+                    android:host="URL HERE" />
             </intent-filter>
 
             <!-- App Links -->
@@ -90,10 +91,10 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <!--SAME AS ABOVE-->
+                <!-- Accepts URIs that begin with https://YOUR_HOST -->
                 <data
                     android:scheme="https"
-                    android:host="YOUR WEB URL" />
+                    android:host="URL HERE" />
             </intent-filter>
 
 

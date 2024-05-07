@@ -1,16 +1,10 @@
 // ignore_for_file: invalid_use_of_protected_member
 
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:ebroker/Ui/screens/proprties/AddProperyScreens/select_type_of_property.dart';
-import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
-import 'package:ebroker/data/cubits/outdoorfacility/fetch_outdoor_facility_list.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rive/components.dart';
@@ -19,30 +13,11 @@ import 'package:rive/src/rive_core/component.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/analytics_routes.dart';
-import '../../app/app.dart';
-import '../../app/routes.dart';
-import '../../data/cubits/company_cubit.dart';
-import '../../data/cubits/property/search_property_cubit.dart';
-import '../../data/cubits/system/fetch_system_settings_cubit.dart';
-import '../../data/model/property_model.dart';
 import '../../data/model/system_settings_model.dart';
-import '../../settings.dart';
-import '../../utils/AppIcon.dart';
-import '../../utils/Extensions/extensions.dart';
-import '../../utils/api.dart';
-import '../../utils/constant.dart';
-import '../../utils/errorFilter.dart';
-import '../../utils/guestChecker.dart';
-import '../../utils/helper_utils.dart';
-import '../../utils/hive_utils.dart';
-import '../../utils/responsiveSize.dart';
-import '../../utils/ui_utils.dart';
 import 'chat/chat_list_screen.dart';
 import 'home/home_screen.dart';
-import 'home/search_screen.dart';
 import 'proprties/my_properties_screen.dart';
 import 'userprofile/profile_screen.dart';
-import 'widgets/blurred_dialoge_box.dart';
 
 List<PropertyModel> myPropertylist = [];
 Map<String, dynamic> searchbody = {};
@@ -141,6 +116,7 @@ class MainActivityState extends State<MainActivity>
   @override
   void initState() {
     super.initState();
+
     if (appSettings.isUserActive == false) {
       Future.delayed(
         Duration.zero,
@@ -454,8 +430,6 @@ class MainActivityState extends State<MainActivity>
 
   @override
   void didChangeDependencies() {
-    ErrorFilter.setContext(context);
-
     artboard?.forEachComponent((child) {
       if (child.name == "plus") {
         for (Component element in (child as Node).children) {

@@ -3,7 +3,7 @@
 import 'package:ebroker/data/model/property_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../Repositories/property_repository.dart';
+import '../../repositories/property_repository.dart';
 
 abstract class CreatePropertyState {}
 

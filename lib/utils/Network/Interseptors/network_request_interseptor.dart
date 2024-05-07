@@ -1,7 +1,11 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:ebroker/development/debugger.dart';
 import 'package:ebroker/utils/Extensions/extensions.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
 class NetworkRequestInterseptor extends Interceptor {
   int totalAPICallTimes = 0;
@@ -10,10 +14,16 @@ class NetworkRequestInterseptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
     Map<String, dynamic> map = {};
 
+    Debugger.addRequest(ApiRequest(
+      ValueKey(options.hashCode),
+      options.path,
+      {},
+    ));
     if (options.data != null) {
       map = (Map.fromEntries((options.data ?? {} as FormData).fields)
         ..addEntries(Iterable.castFrom((options.data as FormData).files)));
     }
+    log("${options.path} : ${options.queryParameters}", name: "Request-API");
 
     // totalAPICallTimes++;
     // ({
@@ -54,6 +64,11 @@ class NetworkRequestInterseptor extends Interceptor {
       "statusMessage": response.statusMessage,
       "response": response.data,
     }).mlog("Response-API");
+    print("RESPONSE HASH CODE ${response.requestOptions.hashCode}");
+    Debugger.updateRequest(
+        requestHash: response.requestOptions.hashCode,
+        statusCode: response!.statusCode!,
+        response: response.data);
     handler.next(response);
   }
 }

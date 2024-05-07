@@ -1,5 +1,5 @@
-import 'package:ebroker/data/model/ReportProperty/reason_model.dart';
 import 'package:ebroker/data/model/data_output.dart';
+import 'package:ebroker/data/model/report_property/reason_model.dart';
 
 import '../../utils/api.dart';
 

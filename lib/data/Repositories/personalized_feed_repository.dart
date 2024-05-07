@@ -1,12 +1,6 @@
-import 'package:ebroker/data/model/Personalized/personalized_settings.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:ebroker/utils/Extensions/lib/map.dart';
-import 'package:ebroker/utils/api.dart';
 import 'package:flutter/material.dart';
-
-import '../../app/app.dart';
-import '../../utils/constant.dart';
-import '../model/data_output.dart';
-import '../model/property_model.dart';
 
 enum PersonalizedFeedAction { add, edit, get }
 
@@ -23,21 +17,25 @@ class PersonalizedFeedRepository {
     String categoryStringArray = categoryIds.join(",");
     String outdoorFacilityStringArray = outdoorFacilityList?.join(",") ?? "";
     String priceRangeString = "${priceRange?.start},${priceRange?.end}";
-    String propertyTypeString = selectedPropertyType?.join(",") ?? "";
+    String propertyTypeString = "";
+    if (selectedPropertyType!.length > 1) {
+      propertyTypeString = "";
+    } else {
+      propertyTypeString = selectedPropertyType.join(",");
+    }
 
     Map<String, dynamic> parameters = {
-      "action": action.name,
       "category_ids": categoryStringArray,
       "outdoor_facilitiy_ids": outdoorFacilityStringArray,
       "price_range": priceRangeString,
       "property_type": propertyTypeString,
       "city": city?.toLowerCase()
     };
+
     parameters.removeEmptyKeys();
 
-    print("PARAMETER-- $parameters");
     Map<String, dynamic> result =
-        await Api.post(url: Api.addEditUserInterest, parameter: parameters);
+        await Api.post(url: Api.personalisedFields, parameter: parameters);
 
     try {
       personalizedInterestSettings =
@@ -45,15 +43,31 @@ class PersonalizedFeedRepository {
     } catch (e) {}
   }
 
+  Future<void> clearPersonalizedSettings(BuildContext context) async {
+    try {
+      Widgets.showLoader(context);
+
+      ///
+      postFrame((t) async {
+        await Api.delete(url: Api.personalisedFields);
+      });
+
+      Widgets.hideLoder(context);
+      HelperUtils.showSnackBarMessage(context, "Successfully cleared",
+          type: MessageType.success);
+      Navigator.pop(context);
+    } catch (e) {
+      Widgets.hideLoder(context);
+      HelperUtils.showSnackBarMessage(context, "Error while clearing settings");
+    }
+  }
+
   Future<PersonalizedInterestSettings> getUserPersonalizedSettings() async {
     try {
-      Map<String, dynamic> userPersonalization = await Api.post(
-        parameter: {
-          "action": "get",
-        },
-        url: Api.addEditUserInterest,
+      Map<String, dynamic> userPersonalization = await Api.get(
+        url: Api.personalisedFields,
       );
-      print("----------------- $userPersonalization");
+
       return PersonalizedInterestSettings.fromMap(
         userPersonalization['data'],
       );

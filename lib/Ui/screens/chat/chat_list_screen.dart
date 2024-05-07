@@ -1,28 +1,8 @@
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:ebroker/Ui/screens/main_activity.dart';
-import 'package:ebroker/app/app.dart';
-import 'package:ebroker/app/default_app_setting.dart';
-import 'package:ebroker/data/cubits/chatCubits/delete_message_cubit.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../../app/app_theme.dart';
-import '../../../data/cubits/chatCubits/get_chat_users.dart';
-import '../../../data/cubits/chatCubits/load_chat_messages.dart';
-import '../../../data/cubits/system/app_theme_cubit.dart';
 import '../../../data/model/chat/chated_user_model.dart';
-import '../../../utils/AppIcon.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/Notification/notification_service.dart';
-import '../../../utils/api.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/Erros/no_internet.dart';
-import '../widgets/Erros/something_went_wrong.dart';
-import '../widgets/shimmerLoadingContainer.dart';
 import 'chat_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
@@ -84,12 +64,10 @@ class _ChatListScreenState extends State<ChatListScreen>
         body: BlocBuilder<GetChatListCubit, GetChatListState>(
           builder: (context, state) {
             if (state is GetChatListFailed) {
-              if (state.error is ApiException) {
-                if (state.error.errorMessage == "no-internet") {
-                  return NoInternet(onRetry: () {
-                    context.read<GetChatListCubit>().fetch();
-                  });
-                }
+              if (state.error is NoInternetConnectionError) {
+                return NoInternet(onRetry: () {
+                  context.read<GetChatListCubit>().fetch();
+                });
               }
 
               return const SomethingWentWrong();

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:ebroker/data/model/property_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../Repositories/advertisement_repository.dart';
+import '../../repositories/advertisement_repository.dart';
 
 abstract class CreateAdvertisementState {}
 

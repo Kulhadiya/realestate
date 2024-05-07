@@ -1,16 +1,5 @@
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../app/routes.dart';
-import '../../../data/cubits/property/fetch_promoted_properties_cubit.dart';
-import '../../../data/model/property_model.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/helper_utils.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/Erros/no_data_found.dart';
-import '../widgets/Erros/something_went_wrong.dart';
-import 'Widgets/property_horizontal_card.dart';
 
 class PromotedPropertiesScreen extends StatefulWidget {
   const PromotedPropertiesScreen({super.key});

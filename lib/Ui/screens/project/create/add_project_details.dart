@@ -1,30 +1,9 @@
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:dotted_border/dotted_border.dart';
-import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
-import 'package:ebroker/data/cubits/project/manage_project_cubit.dart';
 import 'package:ebroker/data/model/project_model.dart';
 import 'package:ebroker/exports/main_export.dart';
-import 'package:ebroker/utils/CloudState/cloud_state.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/responsiveSize.dart';
-import 'package:ebroker/utils/string_extenstion.dart';
-import 'package:ebroker/utils/ui_utils.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:hive/hive.dart';
-
-import '../../../../data/Repositories/location_repository.dart';
-import '../../../../data/model/google_place_model.dart';
-import '../../../../utils/AppIcon.dart';
-import '../../../../utils/hive_keys.dart';
-import '../../proprties/AddProperyScreens/add_property_details.dart';
-import '../../widgets/adaptive_image_picker.dart';
-import '../../widgets/custom_text_form_field.dart';
 
 class AddProjectDetails extends StatefulWidget {
   final Map? editData;
@@ -124,6 +103,7 @@ class _AddProjectDetailsState extends CloudState<AddProjectDetails> {
     super.initState();
   }
 
+  Map<String, dynamic> projectDetails = {};
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -157,41 +137,42 @@ class _AddProjectDetailsState extends CloudState<AddProjectDetails> {
                 } catch (e) {
                   log("issue is $e");
                 }
+
+                projectDetails = {
+                  "title": _titleController.text,
+                  "description": _descriptionController.text,
+                  "latitude": latitude,
+                  "longitude": longitude,
+                  "city": _cityNameController.text,
+                  "state": _stateNameController.text,
+                  "country": _countryNameController.text,
+                  "location": _addressController.text,
+                  "video_link": _videoLinkController.text,
+                  if (titleImage != null &&
+                      titleImage is! UrlValue &&
+                      titleImage?.value != "")
+                    "image": titleImage,
+                  "gallery_images": galleryImages,
+                  ...documents,
+                  "is_edit": isEdit,
+                  "project": project,
+                  "type": projectType,
+                  "remove_gallery_images": removedGalleryImageId.join(","),
+                  "remove_documents": removedDocumentId.join(","),
+                  "remove_plans": removedPlansId.join(","),
+
+                  ////If there is data it will add into it
+                  ...widget.editData ?? {}
+                };
                 addCloudData(
                   'add_project_details',
-                  {
-                    "title": _titleController.text,
-                    "description": _descriptionController.text,
-                    "latitude": latitude,
-                    "longitude": longitude,
-                    "city": _cityNameController.text,
-                    "state": _stateNameController.text,
-                    "country": _countryNameController.text,
-                    "location": _addressController.text,
-                    "video_link": _videoLinkController.text,
-                    if (titleImage != null &&
-                        titleImage is! UrlValue &&
-                        titleImage?.value != "")
-                      "image": titleImage,
-                    "gallery_images": galleryImages,
-
-                    ...documents,
-                    "is_edit": isEdit,
-                    "project": project,
-                    "type": projectType,
-                    "remove_gallery_images": removedGalleryImageId.join(","),
-                    "remove_documents": removedDocumentId.join(","),
-                    "remove_plans": removedPlansId.join(","),
-
-                    ////if there is data it will add into it
-                    ...widget.editData ?? {}
-                  },
+                  projectDetails,
                 );
-
                 //this will create Map from List<Map>
 
                 floorPlansRawData
                     .removeWhere((element) => element['image'] is String);
+
                 Map fold = floorPlansRawData.fold({}, (previousValue, element) {
                   previousValue.addAll({
                     "plans[${previousValue.length ~/ 2}][id]":
@@ -207,7 +188,6 @@ class _AddProjectDetailsState extends CloudState<AddProjectDetails> {
                 });
 
                 addCloudData("floor_plans", fold);
-
                 Navigator.pushNamed(context, Routes.projectMetaDataScreens);
               }
             },
@@ -217,124 +197,144 @@ class _AddProjectDetailsState extends CloudState<AddProjectDetails> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Form(
-          key: _formKey,
-          child: Padding(
-            padding: const EdgeInsets.all(14.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("projectName".translate(context)),
-                height(),
-                CustomTextFormField(
-                  controller: _titleController,
-                  validator: CustomTextFieldValidator.nullCheck,
-                  action: TextInputAction.next,
-                  hintText: "projectName".translate(context),
-                ),
-                height(),
-                Text("Description".translate(context)),
-                height(),
-                CustomTextFormField(
-                  action: TextInputAction.next,
-                  controller: _descriptionController,
-                  validator: CustomTextFieldValidator.nullCheck,
-                  hintText: UiUtils.translate(context, "writeSomething"),
-                  maxLine: 100,
-                  minLine: 6,
-                ),
-                height(),
-                projectTypeField(context),
-                height(),
-                buildLocationChooseHeader(),
-                height(),
-                buildProjectLocationTextFields(),
-                height(),
-                Text("uploadMainPicture".translate(context)),
-                height(),
-                AdaptiveImagePickerWidget(
-                  isRequired: true,
-                  multiImage: false,
-                  value: isEdit ? UrlValue(project!.image!) : null,
-                  title: UiUtils.translate(context, "addMainPicture"),
-                  onSelect: (ImagePickerValue? selected) {
-                    titleImage = selected;
-                    setState(() {});
-                  },
-                ),
-                height(),
-                Text("uploadOtherImages".translate(context)),
-                height(),
-                AdaptiveImagePickerWidget(
-                  title: UiUtils.translate(context, "addOtherImage"),
-                  onRemove: (value) {
-                    if (value is UrlValue) {
-                      removedGalleryImageId.add(value.metaData['id']);
-                    }
-                  },
-                  multiImage: true,
-                  value: MultiValue([
-                    ...project?.gallaryImages?.map((e) => UrlValue(e.name!, {
-                              "id": e.id!,
-                            })) ??
-                        []
-                  ]),
-                  onSelect: (ImagePickerValue? selected) {
-                    if (selected is MultiValue) {
-                      galleryImages = selected;
-                      setState(() {});
-                    }
-                  },
-                ),
-                height(),
-                Text("videoLink".translate(context)),
-                height(),
-                CustomTextFormField(
-                  action: TextInputAction.next,
-                  controller: _videoLinkController,
-                  validator: CustomTextFieldValidator.link,
-                  hintText: "http://example.com/video.mp4",
-                ),
-                height(),
-                Text("projectDocuments".translate(context)),
-                height(),
-                buildDocumentPicker(context),
-                ...documentsList(),
-                height(),
-                Row(
-                  children: [
-                    Column(
-                      children: [
-                        Text(
-                          "floorPlans".translate(context),
-                        ),
-                        Text("${floorPlansRawData.length}").bold()
-                      ],
-                    ),
-                    Spacer(),
-                    MaterialButton(
-                      elevation: 0,
-                      color: context.color.tertiaryColor.withOpacity(0.1),
-                      onPressed: () async {
-                        Map? data = await Navigator.pushNamed(
-                                context, Routes.manageFloorPlansScreen,
-                                arguments: {"floorPlan": floorPlansRawData})
-                            as Map?;
-                        if (data != null) {
-                          floorPlansRawData = data['floorPlans'] ?? [];
+      body: BlocListener<ManageProjectCubit, ManageProjectState>(
+        listener: (context, state) {
+          if (state is ManageProjectInProgress) {
+            Widgets.showLoader(context);
+          }
 
-                          removedPlansId = data['removed'];
-                        }
+          if (state is ManageProjectInSuccess) {
+            context.read<FetchMyProjectsListCubit>().update(state.project);
+            Widgets.hideLoder(context);
+            HelperUtils.showSnackBarMessage(
+                context, "projectAddedSuccessfully".translate(context));
+            Navigator.of(context)
+              ..pop()
+              ..pop();
+          }
+          if (state is ManageProjectInFail) {
+            throw state.error;
+          }
+        },
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Form(
+            key: _formKey,
+            child: Padding(
+              padding: const EdgeInsets.all(14.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("projectName".translate(context)),
+                  height(),
+                  CustomTextFormField(
+                    controller: _titleController,
+                    validator: CustomTextFieldValidator.nullCheck,
+                    action: TextInputAction.next,
+                    hintText: "projectName".translate(context),
+                  ),
+                  height(),
+                  Text("Description".translate(context)),
+                  height(),
+                  CustomTextFormField(
+                    action: TextInputAction.next,
+                    controller: _descriptionController,
+                    validator: CustomTextFieldValidator.nullCheck,
+                    hintText: UiUtils.translate(context, "writeSomething"),
+                    maxLine: 100,
+                    minLine: 6,
+                  ),
+                  height(),
+                  projectTypeField(context),
+                  height(),
+                  buildLocationChooseHeader(),
+                  height(),
+                  buildProjectLocationTextFields(),
+                  height(),
+                  Text("uploadMainPicture".translate(context)),
+                  height(),
+                  AdaptiveImagePickerWidget(
+                    isRequired: true,
+                    multiImage: false,
+                    value: isEdit ? UrlValue(project!.image!) : null,
+                    title: UiUtils.translate(context, "addMainPicture"),
+                    onSelect: (ImagePickerValue? selected) {
+                      titleImage = selected;
+                      setState(() {});
+                    },
+                  ),
+                  height(),
+                  Text("uploadOtherImages".translate(context)),
+                  height(),
+                  AdaptiveImagePickerWidget(
+                    title: UiUtils.translate(context, "addOtherImage"),
+                    onRemove: (value) {
+                      if (value is UrlValue) {
+                        removedGalleryImageId.add(value.metaData['id']);
+                      }
+                    },
+                    multiImage: true,
+                    value: MultiValue([
+                      ...project?.gallaryImages?.map((e) => UrlValue(e.name!, {
+                                "id": e.id!,
+                              })) ??
+                          []
+                    ]),
+                    onSelect: (ImagePickerValue? selected) {
+                      if (selected is MultiValue) {
+                        galleryImages = selected;
                         setState(() {});
-                      },
-                      child: const Text("Manage"),
-                    )
-                  ],
-                ),
-                height(30)
-              ],
+                      }
+                    },
+                  ),
+                  height(),
+                  Text("videoLink".translate(context)),
+                  height(),
+                  CustomTextFormField(
+                    action: TextInputAction.next,
+                    controller: _videoLinkController,
+                    validator: CustomTextFieldValidator.link,
+                    hintText: "http://example.com/video.mp4",
+                  ),
+                  height(),
+                  Text("projectDocuments".translate(context)),
+                  height(),
+                  buildDocumentPicker(context),
+                  ...documentsList(),
+                  height(),
+                  Row(
+                    children: [
+                      Column(
+                        children: [
+                          Text(
+                            "floorPlans".translate(context),
+                          ),
+                          Text("${floorPlansRawData.length}").bold()
+                        ],
+                      ),
+                      Spacer(),
+                      MaterialButton(
+                        elevation: 0,
+                        color: context.color.tertiaryColor.withOpacity(0.1),
+                        onPressed: () async {
+                          Map? data = await Navigator.pushNamed(
+                                  context, Routes.manageFloorPlansScreen,
+                                  arguments: {"floorPlan": floorPlansRawData})
+                              as Map?;
+                          if (data != null) {
+                            floorPlansRawData = data['floorPlans'] ?? [];
+
+                            removedPlansId = data['removed'];
+                          }
+                          setState(() {});
+                        },
+                        child: const Text("Manage"),
+                      )
+                    ],
+                  ),
+                  height(30)
+                ],
+              ),
             ),
           ),
         ),
@@ -506,21 +506,14 @@ class _AddProjectDetailsState extends CloudState<AddProjectDetails> {
   void _onTapChooseLocation(FormFieldState state) async {
     try {
       FocusManager.instance.primaryFocus?.unfocus();
+
       Map? placeMark = await Navigator.pushNamed(
           context, Routes.chooseLocaitonMap,
           arguments: {
-            "latitude": project != null
-                ? double.parse(project!.latitude!)
-                : Hive.box(HiveKeys.userDetailsBox)
-                    .get("latitude")
-                    .toString()
-                    .toDouble(),
-            "longitude": project != null
-                ? double.parse(project!.longitude!)
-                : Hive.box(HiveKeys.userDetailsBox)
-                    .get("longitude")
-                    .toString()
-                    .toDouble()
+            "latitude":
+                project != null ? double.parse(project!.latitude!) : null,
+            "longitude":
+                project != null ? double.parse(project!.longitude!) : null
           }) as Map?;
       LatLng? latlng = placeMark?['latlng'] as LatLng?;
       Placemark? place = placeMark?['place'] as Placemark?;
@@ -528,8 +521,7 @@ class _AddProjectDetailsState extends CloudState<AddProjectDetails> {
       if (latlng != null && place != null) {
         latitude = latlng.latitude;
         longitude = latlng.longitude;
-        // _latitudeController.text = latlng.latitude.toString();
-        // _longitudeController.text = latlng.longitude.toString();
+
         _cityNameController.text = place.locality ?? "";
         _countryNameController.text = place.country ?? "";
         _stateNameController.text = place.administrativeArea ?? "";
@@ -541,8 +533,8 @@ class _AddProjectDetailsState extends CloudState<AddProjectDetails> {
       } else {
         // state.didChange(false);
       }
-    } catch (e) {
-      log("THE ISSUE IS $e");
+    } catch (e, st) {
+      log("THE ISSUE IS $st");
     }
   }
 

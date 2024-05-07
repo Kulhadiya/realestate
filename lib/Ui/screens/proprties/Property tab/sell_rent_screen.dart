@@ -1,20 +1,5 @@
-import 'package:ebroker/utils/api.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../../app/routes.dart';
-import '../../../../data/cubits/favorite/add_to_favorite_cubit.dart';
-import '../../../../data/cubits/property/fetch_my_properties_cubit.dart';
-import '../../../../data/helper/designs.dart';
-import '../../../../data/model/property_model.dart';
-import '../../../../utils/Extensions/extensions.dart';
-import '../../../../utils/responsiveSize.dart';
-import '../../../../utils/ui_utils.dart';
-import '../../home/Widgets/property_horizontal_card.dart';
-import '../../widgets/Erros/no_data_found.dart';
-import '../../widgets/Erros/no_internet.dart';
-import '../../widgets/Erros/something_went_wrong.dart';
-import '../../widgets/shimmerLoadingContainer.dart';
 
 FetchMyPropertiesCubit? cubitReference;
 dynamic propertyType;
@@ -94,18 +79,15 @@ class _SellRentScreenState extends State<SellRentScreen>
             return buildMyPropertyShimmer();
           }
           if (state is FetchMyPropertiesFailure) {
-            if (state.errorMessage is ApiException) {
-              if (state.errorMessage.errorMessage == "no-internet") {
-                return NoInternet(
-                  onRetry: () {
-                    context
-                        .read<FetchMyPropertiesCubit>()
-                        .fetchMyProperties(type: widget.type);
-                  },
-                );
-              }
+            if (state.errorMessage is NoInternetConnectionError) {
+              return NoInternet(
+                onRetry: () {
+                  context
+                      .read<FetchMyPropertiesCubit>()
+                      .fetchMyProperties(type: widget.type);
+                },
+              );
             }
-
             return const SomethingWentWrong();
           }
 

@@ -1,11 +1,10 @@
-import 'package:ebroker/Ui/screens/subscription/widget/subscripton_feature_line.dart';
 import 'package:ebroker/data/model/subscription_pacakage_model.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
+import 'package:ebroker/ui/screens/subscription/widget/subscripton_feature_line.dart';
+import 'package:ebroker/utils/AppIcon.dart';
+import 'package:ebroker/utils/extensions/extensions.dart';
 import 'package:ebroker/utils/responsiveSize.dart';
+import 'package:ebroker/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
-
-import '../../../../utils/AppIcon.dart';
-import '../../../../utils/ui_utils.dart';
 
 abstract class Limit<T> {
   abstract final T value;

@@ -1,5 +1,5 @@
-import 'package:ebroker/Ui/screens/widgets/promoted_widget.dart';
 import 'package:ebroker/app/routes.dart';
+import 'package:ebroker/ui/screens/widgets/promoted_widget.dart';
 import 'package:ebroker/utils/Extensions/extensions.dart';
 import 'package:ebroker/utils/string_extenstion.dart';
 import 'package:flutter/material.dart';

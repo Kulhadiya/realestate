@@ -1,12 +1,7 @@
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
-import '../../../utils/Extensions/extensions.dart';
 import '../../../utils/area_converter.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/custom_text_form_field.dart';
 
 class AreaCalculator extends StatefulWidget {
   const AreaCalculator({super.key});

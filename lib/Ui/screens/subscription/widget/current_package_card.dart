@@ -1,14 +1,14 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_firstutils/Extensions/extensions.dart';
-import 'package:ebroker/Ui/screens/subscription/widget/package_tile.dart';
+import 'package:ebroker/ui/screens/subscription/widget/package_tile.dart';
 import 'package:ebroker/utils/Extensions/extensions.dart';
 import 'package:ebroker/utils/constant.dart';
+import 'package:ebroker/utils/liquid_indicator/src/liquid_circular_progress_indicator.dart';
 import 'package:ebroker/utils/responsiveSize.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../data/model/subscription_pacakage_model.dart';
 import '../../../../utils/AppIcon.dart';
-import '../../../../utils/LiquidIndicator/src/liquid_circular_progress_indicator.dart';
 import '../../../../utils/ui_utils.dart';
 
 class CurrentPackageTileCard extends StatefulWidget {

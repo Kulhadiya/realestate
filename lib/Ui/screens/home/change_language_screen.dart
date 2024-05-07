@@ -1,14 +1,6 @@
-import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
-import 'package:ebroker/data/cubits/system/fetch_language_cubit.dart';
-import 'package:ebroker/data/cubits/system/fetch_system_settings_cubit.dart';
-import 'package:ebroker/data/cubits/system/language_cubit.dart';
-import 'package:ebroker/data/helper/widgets.dart';
 import 'package:ebroker/data/model/system_settings_model.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/hive_utils.dart';
-import 'package:ebroker/utils/ui_utils.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LanguagesListScreen extends StatelessWidget {
   const LanguagesListScreen({super.key});
@@ -20,6 +12,8 @@ class LanguagesListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print(
+        "WATCH ${context.watch<FetchSystemSettingsCubit>().getSetting(SystemSetting.language)}");
     if (context
             .watch<FetchSystemSettingsCubit>()
             .getSetting(SystemSetting.language) ==
@@ -48,15 +42,21 @@ class LanguagesListScreen extends StatelessWidget {
           if (state is FetchLanguageInProgress) {
             Widgets.showLoader(context);
           }
+          if (state is FetchLanguageFailure) {
+            Widgets.hideLoder(context);
+            HelperUtils.showSnackBarMessage(context, state.errorMessage);
+          }
           if (state is FetchLanguageSuccess) {
             Widgets.hideLoder(context);
             Map<String, dynamic> map = state.toMap();
             var data = map['file_name'];
             map['data'] = data;
-            map.remove("file_name");
 
+            map.remove("file_name");
             HiveUtils.storeLanguage(map);
-            context.read<LanguageCubit>().emit(LanguageLoader(state.code));
+            context
+                .read<LanguageCubit>()
+                .emit(LanguageLoader(state.code, isRTL: state.isRTL));
           }
         },
         child: ListView.builder(

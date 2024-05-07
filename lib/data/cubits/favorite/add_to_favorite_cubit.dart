@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:ebroker/data/repositories/favourites_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:ebroker/data/Repositories/favourites_repository.dart';
 
 import '../../../utils/constant.dart';
 

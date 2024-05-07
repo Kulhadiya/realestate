@@ -1,11 +1,11 @@
 import 'dart:developer';
 
-import 'package:ebroker/data/model/ReportProperty/reason_model.dart';
 import 'package:ebroker/data/model/data_output.dart';
+import 'package:ebroker/data/model/report_property/reason_model.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../settings.dart';
-import '../../Repositories/report_property_repository.dart';
+import '../../repositories/report_property_repository.dart';
 
 abstract class FetchPropertyReportReasonsListState {}
 

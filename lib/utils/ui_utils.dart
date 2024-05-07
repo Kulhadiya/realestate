@@ -1,29 +1,9 @@
 import 'dart:math';
 
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:ebroker/app/app.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
-import 'package:mime_type/mime_type.dart';
-
-import '../Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
-import '../Ui/screens/widgets/blurred_dialoge_box.dart';
-import '../Ui/screens/widgets/full_screen_image_view.dart';
-import '../Ui/screens/widgets/gallery_view.dart';
-import '../app/app_localization.dart';
-import '../app/app_theme.dart';
-import '../app/default_app_setting.dart';
-import '../data/cubits/system/app_theme_cubit.dart';
-import 'AppIcon.dart';
-import 'Extensions/extensions.dart';
-import 'constant.dart';
-import 'helper_utils.dart';
-import 'network_to_localsvg.dart';
-import 'responsiveSize.dart';
 
 class UiUtils {
   static BuildContext? _context;
@@ -416,20 +396,31 @@ class UiUtils {
     );
   }
 
+  static String removeDoubleSlashUrl(String url) {
+    Uri uri = Uri.parse(url);
+    List<String> segments = List.from(uri.pathSegments);
+    segments.removeWhere((element) => element == "");
+    return Uri(
+            host: uri.host,
+            pathSegments: segments,
+            scheme: uri.scheme,
+            fragment: uri.fragment,
+            queryParameters: uri.queryParameters,
+            port: uri.port,
+            query: uri.query,
+            userInfo: uri.userInfo)
+        .toString();
+  }
+
   static Widget imageType(String url,
       {double? width, double? height, BoxFit? fit, Color? color}) {
-    String? ext = mime(url);
-    if (ext == "image/svg+xml") {
+    String? ext = url.split(".").last.toLowerCase();
+    if (ext == "svg") {
       return NetworkToLocalSvg().svg(
-        url ?? "",
+        UiUtils.removeDoubleSlashUrl(url) ?? "",
         color: color,
         width: 20,
         height: 20,
-      );
-      return SizedBox(
-        width: width,
-        height: height,
-        child: networkSvg(url, fit: fit, color: color),
       );
     } else {
       return getImage(

@@ -1,14 +1,5 @@
-import 'package:ebroker/Ui/screens/home/Widgets/property_horizontal_card.dart';
-import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
-import 'package:ebroker/Ui/screens/widgets/Erros/something_went_wrong.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/helper_utils.dart';
-import 'package:ebroker/utils/ui_utils.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../app/routes.dart';
-import '../../../data/model/property_model.dart';
 
 ///In this file https://dart.dev/language/generics generic types are used For more info you can see this
 

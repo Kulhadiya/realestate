@@ -4,13 +4,13 @@ import 'package:flutter/cupertino.dart';
 
 class ErrorFilter {
   final dynamic error;
-  // static BuildContext? _context;
+  static BuildContext? _context;
   ErrorFilter(this.error);
   static void setContext(BuildContext context) {
-    // _context = context;
+    _context = context;
   }
 
-  /// set this in errror filters so you can get translated errors
+  ///set this in error filters so you can get translated errors
   factory ErrorFilter.check(errorCode) {
     switch (errorCode) {
       case "network-request-failed":
@@ -20,11 +20,11 @@ class ErrorFilter {
       case "no-internet":
         return ErrorFilter("Please check internet connection");
       case "email-already-in-use":
-        return ErrorFilter("This email is already registerd.");
+        return ErrorFilter("This email is already registered.");
       case "wrong-password":
         return ErrorFilter("The password is wrong.");
       case "user-not-found":
-        return ErrorFilter("This email is not registerd. Please try signup.");
+        return ErrorFilter("This email is not registered. Please try signup.");
       case "invalid-email":
         return ErrorFilter("This email is not valid.");
       case "invalid-phone-number":

@@ -1,12 +1,12 @@
 import 'dart:developer';
 
-import 'package:ebroker/data/Repositories/personalized_feed_repository.dart';
 import 'package:ebroker/data/model/property_model.dart';
+import 'package:ebroker/data/repositories/personalized_feed_repository.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
-import '../../../Ui/screens/proprties/viewAll.dart';
 import '../../../settings.dart';
-import '../../../utils/Network/networkAvailability.dart';
+import '../../../ui/screens/proprties/viewAll.dart';
+import '../../../utils/network/networkAvailability.dart';
 import '../../model/data_output.dart';
 
 abstract class FetchPersonalizedPropertyListState {}
@@ -92,7 +92,9 @@ class FetchPersonalizedPropertyList
     extends Cubit<FetchPersonalizedPropertyListState>
     with HydratedMixin
     implements PropertyCubitWireframe {
-  FetchPersonalizedPropertyList() : super(FetchPersonalizedPropertyInitial());
+  FetchPersonalizedPropertyList() : super(FetchPersonalizedPropertyInitial()) {
+    hydrate();
+  }
   final PersonalizedFeedRepository _personalizedFeedRepository =
       PersonalizedFeedRepository();
 

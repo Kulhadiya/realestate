@@ -1,25 +1,11 @@
 import 'dart:developer';
 
-import 'package:ebroker/Ui/screens/widgets/Erros/no_internet.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-import '../../../app/routes.dart';
-import '../../../data/cubits/property/fetch_property_from_category_cubit.dart';
-import '../../../data/model/property_model.dart';
+import '../../../data/helper/filter.dart';
 import '../../../utils/AdMob/bannerAdLoadWidget.dart';
 import '../../../utils/AdMob/interstitialAdManager.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/api.dart';
-import '../../../utils/constant.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
-import '../home/Widgets/property_horizontal_card.dart';
-import '../main_activity.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/Erros/no_data_found.dart';
-import '../widgets/shimmerLoadingContainer.dart';
 
 class PropertiesList extends StatefulWidget {
   final String? categoryId, categoryName;
@@ -47,6 +33,7 @@ class PropertiesListState extends State<PropertiesList> {
   List<PropertyModel> propertylist = [];
   int adPosition = 9;
   InterstitialAdManager interstitialAdManager = InterstitialAdManager();
+  FilterApply? selectedFilter;
   @override
   void initState() {
     super.initState();
@@ -111,21 +98,20 @@ class PropertiesListState extends State<PropertiesList> {
   }
 
   Widget? noInternetCheck(error) {
-    if (error is ApiException) {
-      if ((error).errorMessage == 'no-internet') {
-        return NoInternet(
-          onRetry: () {
-            context
-                .read<FetchPropertyFromCategoryCubit>()
-                .fetchPropertyFromCategory(
-                    int.parse(
-                      widget.categoryId!,
-                    ),
-                    showPropertyType: false);
-          },
-        );
-      }
+    if (error is NoInternetConnectionError) {
+      return NoInternet(
+        onRetry: () {
+          context
+              .read<FetchPropertyFromCategoryCubit>()
+              .fetchPropertyFromCategory(
+                  int.parse(
+                    widget.categoryId!,
+                  ),
+                  showPropertyType: false);
+        },
+      );
     }
+
     return null;
   }
 
@@ -169,12 +155,13 @@ class PropertiesListState extends State<PropertiesList> {
             }
 
             if (state is FetchPropertyFromCategoryFailure) {
+              log("state--- ${state.errorMessage}");
               var error = noInternetCheck(state.errorMessage);
               if (error != null) {
                 return error;
               }
               return Center(
-                child: Text(state.errorMessage),
+                child: Text(state.errorMessage.toString()),
               );
             }
             if (state is FetchPropertyFromCategorySuccess) {
@@ -209,7 +196,7 @@ class PropertiesListState extends State<PropertiesList> {
                           return (_bannerAd == null)
                               ? Container()
                               : Builder(builder: (context) {
-                                  return BannerAdWidget();
+                                  return const BannerAdWidget();
                                 });
                         }
 
@@ -299,16 +286,21 @@ class PropertiesListState extends State<PropertiesList> {
     return IconButton(
         onPressed: () {
           // show filter screen
-
-          // Constant.propertyFilter = null;
-          Navigator.pushNamed(context, Routes.filterScreen,
-              arguments: {"showPropertyType": false}).then((value) {
-            if (value == true) {
-              context
-                  .read<FetchPropertyFromCategoryCubit>()
-                  .fetchPropertyFromCategory(int.parse(widget.categoryId!),
-                      showPropertyType: false);
-            }
+          print("selected Filter ${selectedFilter?.getFilter()}");
+          Navigator.pushNamed(context, Routes.filterScreen, arguments: {
+            "showPropertyType": false,
+            "filter": selectedFilter
+          }).then((value) {
+            if (value == null) return;
+            selectedFilter = value as FilterApply;
+            context
+                .read<FetchPropertyFromCategoryCubit>()
+                .fetchPropertyFromCategory(
+                    int.parse(
+                      widget.categoryId!,
+                    ),
+                    filter: value,
+                    showPropertyType: false);
             setState(() {});
           });
         },

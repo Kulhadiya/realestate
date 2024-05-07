@@ -1,10 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:ebroker/data/Repositories/interest_repository.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:ebroker/data/repositories/interest_repository.dart';
 import 'package:ebroker/utils/constant.dart';
-
-import '../../../Repositories/property_repository.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 enum PropertyInterest {
   interested("1"),
@@ -36,7 +33,7 @@ class ChangeInterestInPropertyFailure extends ChangeInterestInPropertyState {
 
 class ChangeInterestInPropertyCubit
     extends Cubit<ChangeInterestInPropertyState> {
-  InterestRepository _interestRepository=InterestRepository();
+  InterestRepository _interestRepository = InterestRepository();
   ChangeInterestInPropertyCubit() : super(ChangeInterestInPropertyInitial());
 
   Future<void> changeInterest({

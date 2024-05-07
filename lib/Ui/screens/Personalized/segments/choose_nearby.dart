@@ -2,6 +2,7 @@ part of '../personalized_property_screen.dart';
 
 class NearbyInterest extends StatefulWidget {
   final PageController controller;
+
   final PersonalizedVisitType type;
   final Function(List<int> selectedNearbyPlacesIds) onInteraction;
   const NearbyInterest({
@@ -58,6 +59,7 @@ class _NearbyInterestState extends State<NearbyInterest>
               Spacer(
                 flex: isFirstTime ? 1 : 2,
               ),
+
               if (isFirstTime)
                 GestureDetector(
                     onTap: () {

@@ -18,7 +18,7 @@ class CompanyFetchSuccess extends CompanyState {
 }
 
 class CompanyFetchFailure extends CompanyState {
-  final String errmsg;
+  final dynamic errmsg;
   CompanyFetchFailure(this.errmsg);
 }
 
@@ -29,7 +29,7 @@ class CompanyCubit extends Cubit<CompanyState> {
     emit(CompanyFetchProgress());
     fetchCompanyFromDb(context)
         .then((value) => emit(CompanyFetchSuccess(value)))
-        .catchError((e) => emit(CompanyFetchFailure(e.toString())));
+        .catchError((e) => emit(CompanyFetchFailure(e)));
   }
 
   Future<Company> fetchCompanyFromDb(BuildContext context) async {

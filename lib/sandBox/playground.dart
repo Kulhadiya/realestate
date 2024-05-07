@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-
-import '../Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
 
 class PlayGround extends StatefulWidget {
   const PlayGround({super.key});
@@ -17,10 +16,9 @@ class PlayGround extends StatefulWidget {
 }
 
 class _PlayGroundState extends State<PlayGround> {
-  // Completer completer = Completer();
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return const SafeArea(
       child: Scaffold(
         body: Center(
           child: STFLW(),
@@ -57,15 +55,7 @@ class Hexagon extends CustomClipper<Path> {
     Path path = Path();
     double spaceFactor = size.width * 00.15;
     path.moveTo(spaceFactor, 0);
-
-    // Timer.periodic(Duration(seconds: 2), (timer) {
-    //   print("HEHE");
-    //   path.lineTo(size.width / (size.width / Random().nextInt(50)),
-    //       size.height / (size.height / Random().nextInt(50)));
-    // });
-
     path.close();
-    // path.lineTo(, y);
 
     return path;
   }

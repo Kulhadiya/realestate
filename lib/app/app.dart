@@ -1,26 +1,5 @@
-import 'package:ebroker/Ui/screens/widgets/Erros/something_went_wrong.dart';
-import 'package:ebroker/data/cubits/project/fetch_projects.dart';
 import 'package:ebroker/exports/main_export.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:path_provider/path_provider.dart';
-
-import '../Ui/screens/splash_screen.dart';
-import '../data/Repositories/personalized_feed_repository.dart';
-import '../data/cubits/Personalized/fetch_personalized_properties.dart';
-import '../data/model/Personalized/personalized_settings.dart';
-import '../data/model/app_settings_datamodel.dart';
-//import '../firebase_options.dart';
-import '../main.dart';
-import '../utils/Network/apiCallTrigger.dart';
-import '../utils/api.dart';
-import '../utils/guestChecker.dart';
-import '../utils/ui_utils.dart';
-import 'default_app_setting.dart';
 
 PersonalizedInterestSettings personalizedInterestSettings =
     PersonalizedInterestSettings.empty();
@@ -29,7 +8,7 @@ AppSettingsDataModel appSettings = fallbackSettingAppSettings;
 ///
 
 getAppSettings() async {
-  await LoadAppSettings().load();
+  await LoadAppSettings().load(true);
 }
 
 Future getLanguage() async {
@@ -41,29 +20,27 @@ Future getLanguage() async {
 void initApp() async {
   ///Note: this file's code is very necessary and sensitive if you change it, this might affect whole app , So change it carefully.
   ///This must be used do not remove this line
-  WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
   await HiveUtils.initBoxes();
   // await Isolate.spawn(getLanguage, languageSettingReceivePort.sendPort);
-
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: await getApplicationCacheDirectory(),
+  );
   Api.initInterceptors();
 
   ///This is the widget to show uncaught runtime error in this custom widget so that user can know in that screen something is wrong instead of grey screen
   SomethingWentWrong.asGlobalErrorBuilder();
 
-  // if (Firebase.apps.isNotEmpty) {
-  //   await Firebase.initializeApp(
-  //     options: DefaultFirebaseOptions.currentPlatform,
-  //   );
-  // } else {
-  //   await Firebase.initializeApp();
-  // }
-  //
-  // FirebaseMessaging.onBackgroundMessage(
-  //     NotificationService.onBackgroundMessageHandler);
-  // HydratedBloc.storage = await HydratedStorage.build(
-  //   storageDirectory: await getApplicationDocumentsDirectory(),
-  // );
+  if (Firebase.apps.isNotEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } else {
+    await Firebase.initializeApp();
+  }
+
+  FirebaseMessaging.onBackgroundMessage(
+      NotificationService.onBackgroundMessageHandler);
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
       .then((_) async {
@@ -98,7 +75,7 @@ class _AppState extends State<App> {
 
     APICallTrigger.onTrigger(
       () {
-        //THIS WILL be CALLED WHEN USER WILL LOGIN FROM ANONYMOUS USER.
+        ///THIS WILL be CALLED WHEN USER WILL LOGIN FROM ANONYMOUS USER.
         context.read<LikedPropertiesCubit>().emptyCubit();
         context.read<GetApiKeysCubit>().fetch();
 
@@ -112,7 +89,7 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    //Continuously watching theme change
+    ///Continuously watching theme change
     AppTheme currentTheme = context.watch<AppThemeCubit>().state.appTheme;
     return BlocListener<GetApiKeysCubit, GetApiKeysState>(
       listener: (context, state) {
@@ -130,11 +107,11 @@ class _AppState extends State<App> {
             onGenerateRoute: Routes.onGenerateRouted,
             theme: appThemeData[currentTheme],
             builder: (context, child) {
+              ErrorFilter.setContext(context);
               TextDirection direction;
               //here we are languages direction locally
               if (languageState is LanguageLoader) {
-                if (Constant.totalRtlLanguages
-                    .contains((languageState).languageCode)) {
+                if (languageState.isRTL) {
                   direction = TextDirection.rtl;
                 } else {
                   direction = TextDirection.ltr;
@@ -208,8 +185,8 @@ void loadInitialData(BuildContext context,
   context.read<GetChatListCubit>().setContext(context);
   context.read<GetChatListCubit>().fetch();
 
-  // if (widget.from != "login") {
   PersonalizedFeedRepository().getUserPersonalizedSettings().then((value) {
+    print("Personalized settings $value");
     personalizedInterestSettings = value;
   });
   GuestChecker.listen().addListener(() {

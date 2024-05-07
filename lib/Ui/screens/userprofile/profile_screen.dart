@@ -1,36 +1,15 @@
-import 'dart:io';
-
-import 'package:ebroker/Ui/screens/Personalized/personalized_property_screen.dart';
-import 'package:ebroker/Ui/screens/main_activity.dart';
+import 'package:ebroker/data/model/system_settings_model.dart';
 import 'package:ebroker/data/model/user_model.dart';
-import 'package:ebroker/utils/guestChecker.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:ebroker/utils/hive_keys.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:hive/hive.dart';
 import 'package:launch_review/launch_review.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../../../app/app_theme.dart';
-import '../../../app/routes.dart';
-import '../../../data/cubits/Utility/like_properties.dart';
-import '../../../data/cubits/system/app_theme_cubit.dart';
-import '../../../data/cubits/system/fetch_system_settings_cubit.dart';
-import '../../../data/cubits/system/user_details.dart';
-import '../../../data/model/system_settings_model.dart';
-import '../../../utils/AppIcon.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/Network/apiCallTrigger.dart';
-import '../../../utils/api.dart';
-import '../../../utils/constant.dart';
-import '../../../utils/helper_utils.dart';
-import '../../../utils/hive_utils.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/blurred_dialoge_box.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -79,7 +58,6 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget build(BuildContext context) {
     super.build(context);
     print(Hive.box(HiveKeys.userDetailsBox).toMap().toString());
-
     // log(a!.toString());
     var settings = context.watch<FetchSystemSettingsCubit>();
 
@@ -120,486 +98,511 @@ class _ProfileScreenState extends State<ProfileScreen>
           context,
           title: UiUtils.translate(context, "myProfile"),
         ),
-        body: ScrollConfiguration(
-          behavior: RemoveGlow(),
-          child: SingleChildScrollView(
-            controller: profileScreenController,
-            physics: const BouncingScrollPhysics(),
-            child: Padding(
-              padding: const EdgeInsets.all(18.0),
-              child: Column(children: <Widget>[
-                Container(
-                  height: 91,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1.5,
-                      color: context.color.borderColor,
+        body: BlocListener<DeleteAccountCubit, DeleteAccountState>(
+          listener: (context, state) {
+            if (state is DeleteAccountProgress) {
+              Widgets.showLoader(context);
+            }
+            if (state is DeleteAccountFailure) {
+              Widgets.hideLoder(context);
+            }
+            if (state is AccountDeleted) {
+              Widgets.hideLoder(context);
+              context.read<UserDetailsCubit>().clear();
+              Navigator.pushReplacementNamed(context, Routes.login);
+            }
+          },
+          child: ScrollConfiguration(
+            behavior: RemoveGlow(),
+            child: SingleChildScrollView(
+              controller: profileScreenController,
+              physics: const BouncingScrollPhysics(),
+              child: Padding(
+                padding: const EdgeInsets.all(18.0),
+                child: Column(children: <Widget>[
+                  Container(
+                    height: 91,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        width: 1.5,
+                        color: context.color.borderColor,
+                      ),
+                      color: context.color.secondaryColor,
+                      borderRadius: BorderRadius.circular(18),
                     ),
-                    color: context.color.secondaryColor,
-                    borderRadius: BorderRadius.circular(18),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(18),
-                          child: profileImgWidget(),
-                        ),
-                        SizedBox(
-                          width: context.screenWidth * 0.015,
-                        ),
-                        SizedBox(
-                          // height: 77,
-                          child: Column(
-                            // crossAxisAlignment: CrossAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              SizedBox(
-                                width: context.screenWidth * 0.35,
-                                child: Text(username)
-                                    .color(context.color.textColorDark)
-                                    .size(context.font.large)
-                                    .bold(weight: FontWeight.w700)
-                                    .setMaxLines(lines: 1),
-                              ),
-                              SizedBox(
-                                width: context.screenWidth * 0.35,
-                                child: Text(email)
-                                    .color(context.color.textColorDark)
-                                    .size(context.font.small)
-                                    .setMaxLines(lines: 1),
-                              ),
-                            ],
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(18),
+                            child: profileImgWidget(),
                           ),
-                        ),
-                        const Spacer(),
-                        GuestChecker.updateUI(
-                          onChangeStatus: (bool? isGuest) {
-                            if (isGuest == true) {
-                              return MaterialButton(
-                                shape: RoundedRectangleBorder(
-                                  side: BorderSide(
-                                    color: context.color.borderColor,
-                                    width: 1.5,
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
+                          SizedBox(
+                            width: context.screenWidth * 0.015,
+                          ),
+                          SizedBox(
+                            // height: 77,
+                            child: Column(
+                              // crossAxisAlignment: CrossAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                SizedBox(
+                                  width: context.screenWidth * 0.35,
+                                  child: Text(username)
+                                      .color(context.color.textColorDark)
+                                      .size(context.font.large)
+                                      .bold(weight: FontWeight.w700)
+                                      .setMaxLines(lines: 1),
                                 ),
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    Routes.login,
-                                    arguments: {"popToCurrent": true},
-                                  );
-                                },
-                                child: const Text("Login"),
-                              );
-                            }
+                                SizedBox(
+                                  width: context.screenWidth * 0.35,
+                                  child: Text(email)
+                                      .color(context.color.textColorDark)
+                                      .size(context.font.small)
+                                      .setMaxLines(lines: 1),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Spacer(),
+                          GuestChecker.updateUI(
+                            onChangeStatus: (bool? isGuest) {
+                              if (isGuest == true) {
+                                return MaterialButton(
+                                  shape: RoundedRectangleBorder(
+                                    side: BorderSide(
+                                      color: context.color.borderColor,
+                                      width: 1.5,
+                                    ),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      Routes.login,
+                                      arguments: {"popToCurrent": true},
+                                    );
+                                  },
+                                  child: const Text("Login"),
+                                );
+                              }
 
-                            return InkWell(
-                              onTap: () {
-                                HelperUtils.goToNextPage(
-                                    Routes.completeProfile, context, false,
-                                    args: {"from": "profile"});
-                              },
-                              child: Container(
-                                width: 40.rw(context),
-                                height: 40.rh(context),
-                                decoration: BoxDecoration(
-                                  color: context.color.secondaryColor,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: context.color.borderColor,
-                                    width: 1.5,
+                              return InkWell(
+                                onTap: () {
+                                  HelperUtils.goToNextPage(
+                                      Routes.completeProfile, context, false,
+                                      args: {"from": "profile"});
+                                },
+                                child: Container(
+                                  width: 40.rw(context),
+                                  height: 40.rh(context),
+                                  decoration: BoxDecoration(
+                                    color: context.color.secondaryColor,
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: context.color.borderColor,
+                                      width: 1.5,
+                                    ),
                                   ),
-                                ),
-                                child: FittedBox(
-                                  fit: BoxFit.none,
-                                  child: SizedBox(
-                                    width: 12.rw(context),
-                                    height: 22.rh(context),
-                                    child: UiUtils.getSvg(
-                                      AppIcons.arrowRight,
-                                      color: context.color.textColorDark,
+                                  child: FittedBox(
+                                    fit: BoxFit.none,
+                                    child: SizedBox(
+                                      width: 12.rw(context),
+                                      height: 22.rh(context),
+                                      child: UiUtils.getSvg(
+                                        AppIcons.arrowRight,
+                                        color: context.color.textColorDark,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
+                              );
+                            },
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        width: 1.5,
+                        color: context.color.borderColor,
+                      ),
+                      color: context.color.secondaryColor,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        // customTile(
+                        //   context,
+                        //   title: "ONLY FOR DEVELOPMENT",
+                        //   svgImagePath: AppIcons.enquiry,
+                        //   onTap: () async {
+                        //     var s = await FirebaseMessaging.instance.getToken();
+                        //     Navigator.push(context, MaterialPageRoute(
+                        //       builder: (context) {
+                        //         return Scaffold(
+                        //           body: Padding(
+                        //             padding: const EdgeInsets.all(20.0),
+                        //             child: Center(
+                        //               child: SelectableText(s.toString()),
+                        //             ),
+                        //           ),
+                        //         );
+                        //       },
+                        //     ));
+                        //   },
+                        // ),
+                        // dividerWithSpacing(),
+                        // customTile(
+                        //   context,
+                        //   title: UiUtils.getTranslatedLabel(context, "myEnquiry"),
+                        //   svgImagePath: AppIcons.enquiry,
+                        //   onTap: () {
+                        //     Navigator.pushNamed(context, Routes.myEnquiry);
+                        //   },
+                        // ),
+                        // dividerWithSpacing(),
+                        //THIS IS EXPERIMENTAL
+                        // ignore: dead_code
+                        if (false) ...[
+                          customTile(
+                            context,
+                            title: UiUtils.translate(context, "Dashboard"),
+                            svgImagePath: AppIcons.promoted,
+                            onTap: () {
+                              Navigator.pushNamed(context, Routes.dashboard);
+                            },
+                          ),
+                          dividerWithSpacing(),
+                        ],
+
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "myProjects"),
+                          svgImagePath: AppIcons.upcomingProject,
+                          onTap: () async {
+                            // APICallTrigger.trigger();
+                            GuestChecker.check(
+                              onNotGuest: () async {
+                                Navigator.pushNamed(
+                                    context, Routes.projectListScreen);
+                              },
                             );
                           },
+                        ),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "myAds"),
+                          svgImagePath: AppIcons.promoted,
+                          onTap: () async {
+                            APICallTrigger.trigger();
+                            GuestChecker.check(
+                              onNotGuest: () async {
+                                Navigator.pushNamed(
+                                    context, Routes.myAdvertisment);
+                              },
+                            );
+                          },
+                        ),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "subscription"),
+                          svgImagePath: AppIcons.subscription,
+                          onTap: () async {
+                            GuestChecker.check(onNotGuest: () {
+                              Navigator.pushNamed(
+                                  context, Routes.subscriptionPackageListRoute);
+                            });
+                          },
+                        ),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title:
+                              UiUtils.translate(context, "transactionHistory"),
+                          svgImagePath: AppIcons.transaction,
+                          onTap: () {
+                            GuestChecker.check(onNotGuest: () {
+                              Navigator.pushNamed(
+                                  context, Routes.transactionHistory);
+                            });
+                          },
+                        ),
+                        dividerWithSpacing(),
+
+                        customTile(
+                          context,
+                          title: UiUtils.translate(
+                            context,
+                            "personalized",
+                          ),
+                          svgImagePath: AppIcons.magic,
+                          onTap: () {
+                            GuestChecker.check(onNotGuest: () {
+                              Navigator.pushNamed(
+                                  context, Routes.personalizedPropertyScreen,
+                                  arguments: {
+                                    "type": PersonalizedVisitType.Normal
+                                  });
+                            });
+                          },
+                        ),
+                        dividerWithSpacing(),
+
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "language"),
+                          svgImagePath: AppIcons.language,
+                          onTap: () {
+                            Navigator.pushNamed(
+                                context, Routes.languageListScreenRoute);
+                          },
+                        ),
+                        dividerWithSpacing(),
+                        ValueListenableBuilder(
+                            valueListenable: isDarkTheme,
+                            builder: (context, v, c) {
+                              return customTile(
+                                context,
+                                title: UiUtils.translate(context, "darkTheme"),
+                                svgImagePath: AppIcons.darkTheme,
+                                isSwitchBox: true,
+                                onTapSwitch: (value) {
+                                  context.read<AppThemeCubit>().changeTheme(
+                                      value == true
+                                          ? AppTheme.dark
+                                          : AppTheme.light);
+                                  setState(() {
+                                    isDarkTheme.value = value;
+                                  });
+                                },
+                                switchValue: v,
+                                onTap: () {},
+                              );
+                            }),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "notifications"),
+                          svgImagePath: AppIcons.notification,
+                          onTap: () {
+                            GuestChecker.check(onNotGuest: () {
+                              Navigator.pushNamed(
+                                  context, Routes.notificationPage);
+                            });
+                          },
+                        ),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "articles"),
+                          svgImagePath: AppIcons.articles,
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              Routes.articlesScreenRoute,
+                            );
+                          },
+                        ),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "favorites"),
+                          svgImagePath: AppIcons.favorites,
+                          onTap: () {
+                            GuestChecker.check(onNotGuest: () {
+                              Navigator.pushNamed(
+                                  context, Routes.favoritesScreen);
+                            });
+                          },
+                        ),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "areaConvertor"),
+                          svgImagePath: AppIcons.areaConvertor,
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              Routes.areaConvertorScreen,
+                            );
+                          },
+                        ),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "shareApp"),
+                          svgImagePath: AppIcons.shareApp,
+                          onTap: shareApp,
+                        ),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "rateUs"),
+                          svgImagePath: AppIcons.rateUs,
+                          onTap: rateUs,
+                        ),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "contactUs"),
+                          svgImagePath: AppIcons.contactUs,
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              Routes.contactUs,
+                            );
+                            // Navigator.pushNamed(context, Routes.ab);
+                          },
+                        ),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "aboutUs"),
+                          svgImagePath: AppIcons.aboutUs,
+                          onTap: () {
+                            Navigator.pushNamed(
+                                context, Routes.profileSettings, arguments: {
+                              'title': UiUtils.translate(context, "aboutUs"),
+                              'param': Api.aboutApp
+                            });
+                            // Navigator.pushNamed(context, Routes.ab);
+                          },
+                        ),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title: UiUtils.translate(
+                            context,
+                            "termsConditions",
+                          ),
+                          svgImagePath: AppIcons.terms,
+                          onTap: () {
+                            Navigator.pushNamed(context, Routes.profileSettings,
+                                arguments: {
+                                  'title': UiUtils.translate(
+                                      context, "termsConditions"),
+                                  'param': Api.termsAndConditions
+                                });
+                          },
+                        ),
+                        dividerWithSpacing(),
+                        customTile(
+                          context,
+                          title: UiUtils.translate(context, "privacyPolicy"),
+                          svgImagePath: AppIcons.privacy,
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              Routes.profileSettings,
+                              arguments: {
+                                'title':
+                                    UiUtils.translate(context, "privacyPolicy"),
+                                'param': Api.privacyPolicy
+                              },
+                            );
+                          },
+                        ),
+                        if (Constant.isUpdateAvailable == true) ...[
+                          dividerWithSpacing(),
+                          updateTile(
+                            context,
+                            isUpdateAvailable: Constant.isUpdateAvailable,
+                            title: UiUtils.translate(context, "update"),
+                            newVersion: Constant.newVersionNumber,
+                            svgImagePath: AppIcons.update,
+                            onTap: () async {
+                              if (Platform.isIOS) {
+                                await launchUrl(
+                                    Uri.parse(Constant.appstoreURLios));
+                              } else if (Platform.isAndroid) {
+                                await launchUrl(
+                                    Uri.parse(Constant.playstoreURLAndroid));
+                              }
+                            },
+                          ),
+                        ],
+
+                        if (isGuest == false) ...[
+                          dividerWithSpacing(),
+                          customTile(
+                            context,
+                            title: UiUtils.translate(context, "deleteAccount"),
+                            svgImagePath: AppIcons.delete,
+                            onTap: () {
+                              if (Constant.isDemoModeOn &&
+                                  context
+                                          .read<UserDetailsCubit>()
+                                          .state
+                                          .user
+                                          ?.firebaseId ==
+                                      Constant.demoFirebaseID) {
+                                HelperUtils.showSnackBarMessage(
+                                    context,
+                                    UiUtils.translate(
+                                        context, "thisActionNotValidDemo"));
+                                return;
+                              }
+
+                              deleteConfirmWidget(
+                                  UiUtils.translate(
+                                      context, "deleteProfileMessageTitle"),
+                                  UiUtils.translate(
+                                      context, "deleteProfileMessageContent"),
+                                  true);
+                            },
+                          ),
+                        ],
+                        const SizedBox(
+                          height: 20,
                         )
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(
-                  height: 20,
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1.5,
-                      color: context.color.borderColor,
-                    ),
-                    color: context.color.secondaryColor,
-                    borderRadius: BorderRadius.circular(18),
+                  const SizedBox(
+                    height: 25,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      // customTile(
-                      //   context,
-                      //   title: "ONLY FOR DEVELOPMENT",
-                      //   svgImagePath: AppIcons.enquiry,
-                      //   onTap: () async {
-                      //     var s = await FirebaseMessaging.instance.getToken();
-                      //     Navigator.push(context, MaterialPageRoute(
-                      //       builder: (context) {
-                      //         return Scaffold(
-                      //           body: Padding(
-                      //             padding: const EdgeInsets.all(20.0),
-                      //             child: Center(
-                      //               child: SelectableText(s.toString()),
-                      //             ),
-                      //           ),
-                      //         );
-                      //       },
-                      //     ));
-                      //   },
-                      // ),
-                      // dividerWithSpacing(),
-                      // customTile(
-                      //   context,
-                      //   title: UiUtils.getTranslatedLabel(context, "myEnquiry"),
-                      //   svgImagePath: AppIcons.enquiry,
-                      //   onTap: () {
-                      //     Navigator.pushNamed(context, Routes.myEnquiry);
-                      //   },
-                      // ),
-                      // dividerWithSpacing(),
-                      //THIS IS EXPERIMENTAL
-                      if (false) ...[
-                        customTile(
-                          context,
-                          title: UiUtils.translate(context, "Dashboard"),
-                          svgImagePath: AppIcons.promoted,
-                          onTap: () {
-                            Navigator.pushNamed(context, Routes.dashboard);
-                          },
+                  if (isGuest == false) ...[
+                    UiUtils.buildButton(context, onPressed: () {
+                      logOutConfirmWidget();
+                    },
+                        height: 52.rh(context),
+                        prefixWidget: Padding(
+                          padding: const EdgeInsetsDirectional.only(end: 16.0),
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                                color: context.color.secondaryColor,
+                                borderRadius: BorderRadius.circular(10)),
+                            child: FittedBox(
+                                fit: BoxFit.none,
+                                child: UiUtils.getSvg(AppIcons.logout,
+                                    color: context.color.tertiaryColor)),
+                          ),
                         ),
-                        dividerWithSpacing(),
-                      ],
-
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "myProjects"),
-                        svgImagePath: AppIcons.upcomingProject,
-                        onTap: () async {
-                          // APICallTrigger.trigger();
-                          GuestChecker.check(
-                            onNotGuest: () async {
-                              Navigator.pushNamed(
-                                  context, Routes.projectListScreen);
-                            },
-                          );
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "myAds"),
-                        svgImagePath: AppIcons.promoted,
-                        onTap: () async {
-                          APICallTrigger.trigger();
-                          GuestChecker.check(
-                            onNotGuest: () async {
-                              Navigator.pushNamed(
-                                  context, Routes.myAdvertisment);
-                            },
-                          );
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "subscription"),
-                        svgImagePath: AppIcons.subscription,
-                        onTap: () async {
-                          GuestChecker.check(onNotGuest: () {
-                            Navigator.pushNamed(
-                                context, Routes.subscriptionPackageListRoute);
-                          });
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "transactionHistory"),
-                        svgImagePath: AppIcons.transaction,
-                        onTap: () {
-                          GuestChecker.check(onNotGuest: () {
-                            Navigator.pushNamed(
-                                context, Routes.transactionHistory);
-                          });
-                        },
-                      ),
-                      dividerWithSpacing(),
-
-                      customTile(
-                        context,
-                        title: UiUtils.translate(
-                          context,
-                          "personalized",
-                        ),
-                        svgImagePath: AppIcons.magic,
-                        onTap: () {
-                          GuestChecker.check(onNotGuest: () {
-                            Navigator.pushNamed(
-                                context, Routes.personalizedPropertyScreen,
-                                arguments: {
-                                  "type": PersonalizedVisitType.Normal
-                                });
-                          });
-                        },
-                      ),
-                      dividerWithSpacing(),
-
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "language"),
-                        svgImagePath: AppIcons.language,
-                        onTap: () {
-                          Navigator.pushNamed(
-                              context, Routes.languageListScreenRoute);
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      ValueListenableBuilder(
-                          valueListenable: isDarkTheme,
-                          builder: (context, v, c) {
-                            return customTile(
-                              context,
-                              title: UiUtils.translate(context, "darkTheme"),
-                              svgImagePath: AppIcons.darkTheme,
-                              isSwitchBox: true,
-                              onTapSwitch: (value) {
-                                context.read<AppThemeCubit>().changeTheme(
-                                    value == true
-                                        ? AppTheme.dark
-                                        : AppTheme.light);
-                                setState(() {
-                                  isDarkTheme.value = value;
-                                });
-                              },
-                              switchValue: v,
-                              onTap: () {},
-                            );
-                          }),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "notifications"),
-                        svgImagePath: AppIcons.notification,
-                        onTap: () {
-                          GuestChecker.check(onNotGuest: () {
-                            Navigator.pushNamed(
-                                context, Routes.notificationPage);
-                          });
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "articles"),
-                        svgImagePath: AppIcons.articles,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            Routes.articlesScreenRoute,
-                          );
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "favorites"),
-                        svgImagePath: AppIcons.favorites,
-                        onTap: () {
-                          GuestChecker.check(onNotGuest: () {
-                            Navigator.pushNamed(
-                                context, Routes.favoritesScreen);
-                          });
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "areaConvertor"),
-                        svgImagePath: AppIcons.areaConvertor,
-                        onTap: () {
-                          Navigator.pushNamed(
-                              context, Routes.areaConvertorScreen);
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "shareApp"),
-                        svgImagePath: AppIcons.shareApp,
-                        onTap: shareApp,
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "rateUs"),
-                        svgImagePath: AppIcons.rateUs,
-                        onTap: rateUs,
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "contactUs"),
-                        svgImagePath: AppIcons.contactUs,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            Routes.contactUs,
-                          );
-                          // Navigator.pushNamed(context, Routes.ab);
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "aboutUs"),
-                        svgImagePath: AppIcons.aboutUs,
-                        onTap: () {
-                          Navigator.pushNamed(context, Routes.profileSettings,
-                              arguments: {
-                                'title': UiUtils.translate(context, "aboutUs"),
-                                'param': Api.aboutApp
-                              });
-                          // Navigator.pushNamed(context, Routes.ab);
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(
-                          context,
-                          "termsConditions",
-                        ),
-                        svgImagePath: AppIcons.terms,
-                        onTap: () {
-                          Navigator.pushNamed(context, Routes.profileSettings,
-                              arguments: {
-                                'title': UiUtils.translate(
-                                    context, "termsConditions"),
-                                'param': Api.termsAndConditions
-                              });
-                        },
-                      ),
-                      dividerWithSpacing(),
-                      customTile(
-                        context,
-                        title: UiUtils.translate(context, "privacyPolicy"),
-                        svgImagePath: AppIcons.privacy,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            Routes.profileSettings,
-                            arguments: {
-                              'title':
-                                  UiUtils.translate(context, "privacyPolicy"),
-                              'param': Api.privacyPolicy
-                            },
-                          );
-                        },
-                      ),
-                      if (Constant.isUpdateAvailable == true) ...[
-                        dividerWithSpacing(),
-                        updateTile(
-                          context,
-                          isUpdateAvailable: Constant.isUpdateAvailable,
-                          title: UiUtils.translate(context, "update"),
-                          newVersion: Constant.newVersionNumber,
-                          svgImagePath: AppIcons.update,
-                          onTap: () async {
-                            if (Platform.isIOS) {
-                              await launchUrl(
-                                  Uri.parse(Constant.appstoreURLios));
-                            } else if (Platform.isAndroid) {
-                              await launchUrl(
-                                  Uri.parse(Constant.playstoreURLAndroid));
-                            }
-                          },
-                        ),
-                      ],
-
-                      if (isGuest == false) ...[
-                        dividerWithSpacing(),
-                        customTile(
-                          context,
-                          title: UiUtils.translate(context, "deleteAccount"),
-                          svgImagePath: AppIcons.delete,
-                          onTap: () {
-                            if (Constant.isDemoModeOn) {
-                              HelperUtils.showSnackBarMessage(
-                                  context,
-                                  UiUtils.translate(
-                                      context, "thisActionNotValidDemo"));
-                              return;
-                            }
-
-                            deleteConfirmWidget(
-                                UiUtils.translate(
-                                    context, "deleteProfileMessageTitle"),
-                                UiUtils.translate(
-                                    context, "deleteProfileMessageContent"),
-                                true);
-                          },
-                        ),
-                      ],
-                      const SizedBox(
-                        height: 20,
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(
-                  height: 25,
-                ),
-                if (isGuest == false) ...[
-                  UiUtils.buildButton(context, onPressed: () {
-                    logOutConfirmWidget();
-                  },
-                      height: 52.rh(context),
-                      prefixWidget: Padding(
-                        padding: const EdgeInsetsDirectional.only(end: 16.0),
-                        child: Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                              color: context.color.secondaryColor,
-                              borderRadius: BorderRadius.circular(10)),
-                          child: FittedBox(
-                              fit: BoxFit.none,
-                              child: UiUtils.getSvg(AppIcons.logout,
-                                  color: context.color.tertiaryColor)),
-                        ),
-                      ),
-                      buttonTitle: UiUtils.translate(context, "logout"))
-                ],
-                // profileInfo(),
-                // Expanded(
-                //   child: profileMenus(),
-                // )
-              ]),
+                        buttonTitle: UiUtils.translate(context, "logout"))
+                  ],
+                  // profileInfo(),
+                  // Expanded(
+                  //   child: profileMenus(),
+                  // )
+                ]),
+              ),
             ),
           ),
         ),
@@ -798,9 +801,43 @@ class _ProfileScreenState extends State<ProfileScreen>
           if (callDel) {
             Future.delayed(
               const Duration(microseconds: 100),
-              () {
-                Navigator.pushNamed(context, Routes.login,
-                    arguments: {"isDeleteAccount": true});
+              () async {
+                Widgets.showLoader(context);
+                try {
+                  // throw FirebaseAuthException(code: "requires-recent-login");
+                  await FirebaseAuth.instance.currentUser?.delete();
+                  context.read<DeleteAccountCubit>().deleteAccount(context);
+                  Widgets.hideLoder(context);
+                  context.read<UserDetailsCubit>().clear();
+                  Navigator.pushReplacementNamed(context, Routes.login);
+                } catch (e) {
+                  Widgets.hideLoder(context);
+                  if (e is FirebaseAuthException) {
+                    if (e.code == "requires-recent-login") {
+                      UiUtils.showBlurredDialoge(context,
+                          dialoge: BlurredDialogBox(
+                              title: "Recent login required".translate(context),
+                              acceptTextColor: context.color.buttonColor,
+                              showCancleButton: false,
+                              content:
+                                  Text("logoutAndLoginAgain".translate(context))
+                                      .centerAlign()));
+                    } else {
+                      UiUtils.showBlurredDialoge(
+                        context,
+                        dialoge: BlurredDialogBox(
+                          title: "somethingWentWrng".translate(context),
+                          acceptTextColor: context.color.buttonColor,
+                          showCancleButton: false,
+                          content: Text(e.message ?? ""),
+                        ),
+                      );
+                    }
+                  }
+                }
+
+                // Navigator.pushNamed(context, Routes.login,
+                //     arguments: {"isDeleteAccount": true});
               },
             );
           } else {
@@ -889,6 +926,8 @@ class _ProfileScreenState extends State<ProfileScreen>
         dialoge: BlurredDialogBox(
             title: UiUtils.translate(context, "confirmLogoutTitle"),
             onAccept: () async {
+              await FirebaseAuth.instance.signOut();
+              await GoogleSignIn().signOut();
               Future.delayed(
                 Duration.zero,
                 () {

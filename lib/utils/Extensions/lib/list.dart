@@ -42,6 +42,10 @@ extension ListExt<T> on List<T> {
     return false;
   }
 
+  List<B> condition<B>(List<B> Function(List<T> list) cdt) {
+    return cdt.call(this);
+  }
+
   List<int> forceInt() {
     return map((e) => Adapter.forceInt(e)!).toList() ?? <int>[];
   }

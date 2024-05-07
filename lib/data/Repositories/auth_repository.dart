@@ -3,21 +3,46 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../utils/api.dart';
 import '../../utils/constant.dart';
 
+enum LoginType {
+  google("0"),
+  phone("1"),
+  apple("2");
+
+  final String value;
+  const LoginType(this.value);
+}
+
 class AuthRepository {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   static int? forceResendingToken;
   Future<Map<String, dynamic>> loginWithApi(
-      {required String phone, required String uid}) async {
+      {required LoginType type,
+      required String? phone,
+      required String uid,
+      String? email}) async {
     Map<String, String> parameters = {
-      Api.mobile: phone.replaceAll(" ", "").replaceAll("+", ""),
+      Api.mobile: phone?.replaceAll(" ", "").replaceAll("+", "") ?? "",
       Api.firebaseId: uid,
-      Api.type: Constant.logintypeMobile,
+      if (email != null) "email": email,
+      Api.type: type.value,
     };
 
-    Map<String, dynamic> response = await Api.post(
-        url: Api.apiLogin, parameter: parameters, useAuthToken: false);
+    if (type == LoginType.phone) {
+      parameters.remove("email");
+    } else {
+      parameters.remove("mobile");
+    }
 
-    return {"token": response['token'], "data": response['data']};
+    Map<String, dynamic> response = await Api.post(
+      url: Api.apiLogin,
+      parameter: parameters,
+      useAuthToken: false,
+    );
+
+    return {
+      "token": response['token'],
+      "data": response['data'],
+    };
   }
 
   Future<void> sendOTP(

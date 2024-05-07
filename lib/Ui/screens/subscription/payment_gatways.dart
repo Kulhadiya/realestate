@@ -1,24 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:io';
 
-import 'package:ebroker/app/app.dart';
-import 'package:ebroker/app/default_app_setting.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_paystack/flutter_paystack.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
-import '../../../data/cubits/subscription/fetch_subscription_packages_cubit.dart';
-import '../../../data/cubits/system/fetch_system_settings_cubit.dart';
-import '../../../settings.dart';
-import '../../../utils/constant.dart';
-import '../../../utils/helper_utils.dart';
-import '../../../utils/hive_utils.dart';
 import '../../../utils/payment/gatways/paypal.dart';
 import '../../../utils/payment/gatways/stripe_service.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/blurred_dialoge_box.dart';
 
 class PaymentGatways {
   static PaystackPlugin paystackPlugin = PaystackPlugin();

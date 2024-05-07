@@ -1,12 +1,5 @@
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-
-import '../../../app/routes.dart';
-import '../../../data/helper/designs.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import 'notifications.dart';
 
 class NotificationDetail extends StatefulWidget {
   const NotificationDetail({Key? key}) : super(key: key);

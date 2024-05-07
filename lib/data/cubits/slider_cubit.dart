@@ -21,7 +21,7 @@ class SliderFetchInInternalProgress extends SliderState {}
 class SliderFetchSuccess extends SliderState {
   List<HomeSlider> sliderlist = [];
 
-  SliderFetchSuccess(this.sliderlist);
+  SliderFetchSuccess(this.sliderlist) {}
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
@@ -53,7 +53,9 @@ class SliderFetchFailure extends SliderState {
 }
 
 class SliderCubit extends Cubit<SliderState> with HydratedMixin {
-  SliderCubit() : super(SliderInitial());
+  SliderCubit() : super(SliderInitial()){
+    hydrate();
+  }
 
   void fetchSlider(BuildContext context,
       {bool? forceRefresh, bool? loadWithoutDelay}) async {

@@ -1,71 +1,31 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:ebroker/Ui/screens/home/Widgets/category_card.dart';
-import 'package:ebroker/Ui/screens/home/Widgets/property_gradient_card.dart';
-import 'package:ebroker/Ui/screens/home/Widgets/property_horizontal_card.dart';
-import 'package:ebroker/Ui/screens/project/view/project_list_screen.dart';
-import 'package:ebroker/Ui/screens/proprties/viewAll.dart';
-import 'package:ebroker/app/default_app_setting.dart';
-import 'package:ebroker/data/cubits/Personalized/fetch_personalized_properties.dart';
-import 'package:ebroker/data/cubits/Utility/proeprty_edit_global.dart';
-import 'package:ebroker/data/cubits/category/fetch_cities_category.dart';
-import 'package:ebroker/data/cubits/project/fetch_projects.dart';
+
 import 'package:ebroker/data/cubits/property/fetch_city_property_list.dart';
-import 'package:ebroker/data/cubits/property/fetch_nearby_property_cubit.dart';
-import 'package:ebroker/data/cubits/property/fetch_recent_properties.dart';
 import 'package:ebroker/data/model/category.dart';
-import 'package:ebroker/data/model/project_model.dart';
-import 'package:ebroker/utils/AdMob/bannerAdLoadWidget.dart';
-import 'package:ebroker/utils/guestChecker.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/ui/screens/home/Widgets/property_card_big.dart';
+import 'package:ebroker/ui/screens/home/Widgets/property_gradient_card.dart';
+import 'package:ebroker/ui/screens/home/slider_widget.dart';
+import 'package:ebroker/ui/screens/home/widgets/category_card.dart';
+import 'package:ebroker/ui/screens/home/widgets/city_heading_card.dart';
+import 'package:ebroker/ui/screens/home/widgets/header_card.dart';
+import 'package:ebroker/ui/screens/home/widgets/homeListener.dart';
+import 'package:ebroker/ui/screens/home/widgets/home_profile_image_card.dart';
+import 'package:ebroker/ui/screens/home/widgets/home_search.dart';
+import 'package:ebroker/ui/screens/home/widgets/home_shimmers.dart';
+import 'package:ebroker/ui/screens/home/widgets/location_widget.dart';
+import 'package:ebroker/ui/screens/proprties/viewAll.dart';
+import 'package:ebroker/utils/sliver_grid_delegate_with_fixed_cross_axis_count_and_fixed_height.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:uni_links/uni_links.dart';
 
-import '../../../app/app.dart';
-import '../../../app/routes.dart';
-import '../../../data/cubits/category/fetch_category_cubit.dart';
-import '../../../data/cubits/favorite/add_to_favorite_cubit.dart';
-import '../../../data/cubits/favorite/fetch_favorites_cubit.dart';
-import '../../../data/cubits/property/fetch_home_properties_cubit.dart';
-import '../../../data/cubits/property/fetch_most_liked_properties.dart';
-import '../../../data/cubits/property/fetch_most_viewed_properties_cubit.dart';
-import '../../../data/cubits/property/fetch_promoted_properties_cubit.dart';
-import '../../../data/cubits/slider_cubit.dart';
-import '../../../data/cubits/system/fetch_system_settings_cubit.dart';
-import '../../../data/cubits/system/get_api_keys_cubit.dart';
 import '../../../data/helper/design_configs.dart';
-import '../../../data/model/property_model.dart';
+import '../../../data/model/project_model.dart';
 import '../../../data/model/system_settings_model.dart';
-import '../../../settings.dart';
-import '../../../utils/AppIcon.dart';
-import '../../../utils/DeepLink/nativeDeepLinkManager.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/api.dart';
-import '../../../utils/constant.dart';
-import '../../../utils/deeplinkManager.dart';
-import '../../../utils/helper_utils.dart';
-import '../../../utils/hive_utils.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/sliver_grid_delegate_with_fixed_cross_axis_count_and_fixed_height.dart';
-import '../../../utils/ui_utils.dart';
-import '../main_activity.dart';
-import '../widgets/Erros/no_data_found.dart';
-import '../widgets/Erros/no_internet.dart';
-import '../widgets/Erros/something_went_wrong.dart';
-import '../widgets/blurred_dialoge_box.dart';
-import '../widgets/shimmerLoadingContainer.dart';
-import 'Widgets/city_heading_card.dart';
-import 'Widgets/header_card.dart';
-import 'Widgets/homeListener.dart';
-import 'Widgets/home_profile_image_card.dart';
-import 'Widgets/home_search.dart';
-import 'Widgets/home_shimmers.dart';
-import 'Widgets/location_widget.dart';
-import 'Widgets/property_card_big.dart';
-import 'slider_widget.dart';
+import '../../../utils/admob/bannerAdLoadWidget.dart';
+import '../../../utils/network/networkAvailability.dart';
 
 const double sidePadding = 18;
 
@@ -89,7 +49,6 @@ class HomeScreenState extends State<HomeScreen>
     DeepLinkManager.initDeepLinks(context);
 
     getInitialLink().then((value) {
-      print("GOT THE LINK IN BACKGROUND $value");
       if (value == null) return;
 
       Navigator.push(
@@ -100,8 +59,6 @@ class HomeScreenState extends State<HomeScreen>
       );
     });
     linkStream.listen((event) {
-      print("GOT THE LINK IN Forground $event");
-
       Navigator.push(
         Constant.navigatorKey.currentContext!,
         NativeLinkWidget.render(
@@ -116,7 +73,6 @@ class HomeScreenState extends State<HomeScreen>
     fetchApiKeys();
     loadInitialData(context);
     initializeHomeStateListener();
-
     super.initState();
   }
 
@@ -137,7 +93,7 @@ class HomeScreenState extends State<HomeScreen>
     homeStateListener.init(
       setState,
       onNetAvailable: () {
-        loadInitialData(context);
+        if (mounted) loadInitialData(context);
       },
     );
   }
@@ -228,26 +184,32 @@ class HomeScreenState extends State<HomeScreen>
         .read<FetchCityCategoryCubit>()
         .fetchCityCategory(forceRefresh: true);
     context.read<FetchPersonalizedPropertyList>().fetch(forceRefresh: true);
+    if (GuestChecker.value == false) {
+      context
+          .read<FetchSystemSettingsCubit>()
+          .fetchSettings(isAnonymouse: false, forceRefresh: true);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
     HomeScreenDataBinding homeScreenState = homeStateListener.listen(context);
-
-    // FirebaseMessaging.instance
-    //     .getToken()
-    //     .then((value) => log(value!, name: "FCM"));
-    //
     HiveUtils.getJWT()?.log("JWT");
-    // HiveUtils.getUserId()?.log("USER ID");
     return SafeArea(
       child: RefreshIndicator(
         color: context.color.tertiaryColor,
         triggerMode: RefreshIndicatorTriggerMode.onEdge,
         onRefresh: () async {
-          _onRefresh();
+          CheckInternet.check(
+            onInternet: () {
+              _onRefresh();
+            },
+            onNoInternet: () {
+              HelperUtils.showSnackBarMessage(
+                  context, "noInternet".translate(context));
+            },
+          );
         },
         child: Scaffold(
           appBar: AppBar(
@@ -293,7 +255,7 @@ class HomeScreenState extends State<HomeScreen>
                   if (isGuest == null) {
                     return buildDefaultPersonSVG(context);
                   } else if (isGuest == true) {
-                    return SizedBox(
+                    return const SizedBox(
                       width: 90,
                     );
                   } else {
@@ -330,6 +292,7 @@ class HomeScreenState extends State<HomeScreen>
                 }
               },
               builder: (context, state) {
+                print("Network state is ${homeScreenState.state}");
                 if (homeScreenState.state == HomeScreenDataState.success) {
                 } else if (homeScreenState.state ==
                     HomeScreenDataState.nointernet) {
@@ -505,27 +468,47 @@ class HomeScreenState extends State<HomeScreen>
                       onTap: () {
                         GuestChecker.check(
                           onNotGuest: () {
+                            print(
+                                "PREMIUSM ${context.read<FetchSystemSettingsCubit>().getRawSettings()['is_premium']}");
                             if (context
                                     .read<FetchSystemSettingsCubit>()
                                     .getRawSettings()['is_premium'] ??
                                 false) {
+                              print("First");
                               Navigator.pushNamed(
                                   context, Routes.projectDetailsScreen,
                                   arguments: {
                                     "project": project,
                                   });
                             } else {
-                              UiUtils.showBlurredDialoge(context,
-                                  dialoge: BlurredDialogBox(
-                                      title: "Subscription needed",
-                                      isAcceptContainesPush: true,
-                                      onAccept: () async {
-                                        Navigator.popAndPushNamed(context,
-                                            Routes.subscriptionPackageListRoute,
-                                            arguments: {"from": "home"});
-                                      },
-                                      content: const Text(
-                                          "Subscribe to package if you want to use this feature")));
+                              print("Second");
+
+                              if (project.addedBy.toString() ==
+                                  HiveUtils.getUserId()) {
+                                print("Second First");
+
+                                Navigator.pushNamed(
+                                    context, Routes.projectDetailsScreen,
+                                    arguments: {
+                                      "project": project,
+                                    });
+                              } else {
+                                print("Second Second");
+
+                                UiUtils.showBlurredDialoge(context,
+                                    dialoge: BlurredDialogBox(
+                                        title: "Subscription needed",
+                                        isAcceptContainesPush: true,
+                                        onAccept: () async {
+                                          Navigator.popAndPushNamed(
+                                              context,
+                                              Routes
+                                                  .subscriptionPackageListRoute,
+                                              arguments: {"from": "home"});
+                                        },
+                                        content: const Text(
+                                            "Subscribe to package if you want to use this feature")));
+                              }
                             }
                           },
                         );
@@ -822,10 +805,8 @@ class HomeScreenState extends State<HomeScreen>
         FetchMostLikedPropertiesState>(
       listener: (context, state) {
         if (state is FetchMostLikedPropertiesFailure) {
-          if (state.error is ApiException) {
-            homeStateListener.setNetworkState(
-                setState, !(state.error.errorMessage == "no-internet"));
-          }
+          homeStateListener.setNetworkState(
+              setState, (state.error is NoInternetConnectionError));
           setState(() {});
         }
         if (state is FetchMostLikedPropertiesSuccess) {
@@ -896,11 +877,8 @@ class HomeScreenState extends State<HomeScreen>
     return BlocConsumer<FetchNearbyPropertiesCubit, FetchNearbyPropertiesState>(
       listener: (context, state) {
         if (state is FetchNearbyPropertiesFailure) {
-          if (state.error is ApiException) {
-            homeStateListener.setNetworkState(
-                setState, !(state.error.error == "no-internet"));
-          }
-
+          homeStateListener.setNetworkState(
+              setState, (state.error is! NoInternetConnectionError));
           setState(() {});
         }
         if (state is FetchNearbyPropertiesSuccess) {
@@ -975,10 +953,8 @@ class HomeScreenState extends State<HomeScreen>
         FetchMostViewedPropertiesState>(
       listener: (context, state) {
         if (state is FetchMostViewedPropertiesFailure) {
-          if (state.error is ApiException) {
-            homeStateListener.setNetworkState(
-                setState, !(state.error.error == "no-internet"));
-          }
+          homeStateListener.setNetworkState(
+              setState, (state.error is! NoInternetConnectionError));
           setState(() {});
         }
         if (state is FetchMostViewedPropertiesSuccess) {

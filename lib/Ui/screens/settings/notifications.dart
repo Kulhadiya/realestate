@@ -1,25 +1,11 @@
 import 'dart:convert';
 
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../app/routes.dart';
-import '../../../data/cubits/fetch_notifications_cubit.dart';
 import '../../../data/helper/custom_exception.dart';
 import '../../../data/helper/design_configs.dart';
 import '../../../data/model/notification_data.dart';
-import '../../../data/model/property_model.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/api.dart';
-import '../../../utils/constant.dart';
-import '../../../utils/helper_utils.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/Erros/no_data_found.dart';
-import '../widgets/Erros/no_internet.dart';
-import '../widgets/Erros/something_went_wrong.dart';
-import '../widgets/shimmerLoadingContainer.dart';
 
 late NotificationData selectedNotification;
 
@@ -73,16 +59,13 @@ class NotificationsState extends State<Notifications> {
           return buildNotificationShimmer();
         }
         if (state is FetchNotificationsFailure) {
-          if (state.errorMessage is ApiException) {
-            if (state.errorMessage.errorMessage == "no-internet") {
-              return NoInternet(
-                onRetry: () {
-                  context.read<FetchNotificationsCubit>().fetchNotifications();
-                },
-              );
-            }
+          if (state.errorMessage is NoInternetConnectionError) {
+            return NoInternet(
+              onRetry: () {
+                context.read<FetchNotificationsCubit>().fetchNotifications();
+              },
+            );
           }
-
           return const SomethingWentWrong();
         }
 

@@ -1,23 +1,13 @@
 // ignore: unused_import
 import 'dart:developer';
 
-import 'package:ebroker/Ui/screens/home/Widgets/property_card_big.dart';
-import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
-import 'package:ebroker/Ui/screens/widgets/promoted_widget.dart';
-import 'package:ebroker/app/routes.dart';
-import 'package:ebroker/data/Repositories/subscription_repository.dart';
 import 'package:ebroker/data/cubits/property/create_advertisement_cubit.dart';
-import 'package:ebroker/data/cubits/property/fetch_my_properties_cubit.dart';
-import 'package:ebroker/data/cubits/subscription/get_subsctiption_package_limits_cubit.dart';
-import 'package:ebroker/data/helper/widgets.dart';
-import 'package:ebroker/data/model/property_model.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/helper_utils.dart';
+import 'package:ebroker/data/repositories/subscription_repository.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/ui/screens/home/Widgets/property_card_big.dart';
+import 'package:ebroker/ui/screens/widgets/promoted_widget.dart';
 import 'package:ebroker/utils/imagePicker.dart';
-import 'package:ebroker/utils/responsiveSize.dart';
-import 'package:ebroker/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 enum AvertisementType {
   home("HomeScreen"),
@@ -137,14 +127,11 @@ class _CreateAdvertisementScreenState extends State<CreateAdvertisementScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(
-      const Duration(milliseconds: 500),
-      () {
-        context
-            .read<GetSubsctiptionPackageLimitsCubit>()
-            .getLimits(SubscriptionLimitType.advertisement);
-      },
-    );
+    Future.delayed(const Duration(milliseconds: 500), () {
+      context
+          .read<GetSubsctiptionPackageLimitsCubit>()
+          .getLimits(SubscriptionLimitType.advertisement);
+    });
   }
 
   bool hasPackage = false;
@@ -159,9 +146,9 @@ class _CreateAdvertisementScreenState extends State<CreateAdvertisementScreen> {
         title: UiUtils.translate(context, "createAdvertisment"),
       ),
       bottomNavigationBar: BlocConsumer<GetSubsctiptionPackageLimitsCubit,
-          GetSubsctiptionPackageLimitsState>(
+          GetSubscriptionPackageLimitsState>(
         listener: (context, state) {
-          if (state is GetSubsctiptionPackageLimitsInProgress) {
+          if (state is GetSubscriptionPackageLimitsInProgress) {
             Widgets.showLoader(context);
           }
 
@@ -172,12 +159,12 @@ class _CreateAdvertisementScreenState extends State<CreateAdvertisementScreen> {
                 type: MessageType.error);
             Navigator.pop(context);
           }
-          if (state is GetSubsctiptionPackageLimitsSuccess) {
+          if (state is GetSubscriptionPackageLimitsSuccess) {
             Widgets.hideLoder(context);
           }
         },
         builder: (context, state) {
-          if ((state is GetSubsctiptionPackageLimitsSuccess)) {
+          if ((state is GetSubscriptionPackageLimitsSuccess)) {
             hasPackage = state.packageLimit.hasPackage == true;
           }
 

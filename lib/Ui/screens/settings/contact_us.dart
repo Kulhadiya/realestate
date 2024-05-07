@@ -1,18 +1,8 @@
 import 'dart:ui' as ui;
 
-import 'package:ebroker/Ui/screens/widgets/blurred_dialoge_box.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../../../data/cubits/company_cubit.dart';
-import '../../../utils/AppIcon.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/constant.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/custom_text_form_field.dart';
 
 class ContactUs extends StatefulWidget {
   const ContactUs({Key? key}) : super(key: key);
@@ -114,6 +104,7 @@ class ContactUsState extends State<ContactUs> {
             ),
           );
         } else if (state is CompanyFetchFailure) {
+          print("error iii ${state.errmsg}");
           return Center(
             child: Text(state.errmsg),
           );

@@ -1,10 +1,5 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
-import 'package:ebroker/Ui/screens/widgets/adaptive_image_picker.dart';
-import 'package:ebroker/data/model/data_output.dart';
 import 'package:ebroker/exports/main_export.dart';
-import 'package:ebroker/utils/api.dart';
 
 import '../model/project_model.dart';
 
@@ -37,7 +32,6 @@ class ProjectRepository {
       print("PRINT MAP $map");
       return map;
     } catch (e, st) {
-      print(":E $st");
       // throw e;
     }
   }

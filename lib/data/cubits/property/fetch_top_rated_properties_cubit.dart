@@ -1,5 +1,5 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:ebroker/data/Repositories/property_repository.dart';
+import 'package:ebroker/data/repositories/property_repository.dart';
 import 'package:ebroker/data/model/data_output.dart';
 import 'package:ebroker/data/model/property_model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

@@ -1,9 +1,11 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 
-import 'package:ebroker/data/Repositories/property_repository.dart';
 import 'package:ebroker/data/model/data_output.dart';
 import 'package:ebroker/data/model/property_model.dart';
+import 'package:ebroker/data/repositories/property_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../helper/filter.dart';
 
 abstract class SearchPropertyState {}
 
@@ -59,11 +61,11 @@ class SearchPropertyCubit extends Cubit<SearchPropertyState> {
 
   final PropertyRepository _propertyRepository = PropertyRepository();
   Future<void> searchProperty(String query,
-      {required int offset, bool? useOffset}) async {
+      {required int offset, bool? useOffset, FilterApply? filter}) async {
     try {
       emit(SearchPropertyFetchProgress());
-      DataOutput<PropertyModel> result =
-          await _propertyRepository.searchProperty(query, offset: 0);
+      DataOutput<PropertyModel> result = await _propertyRepository
+          .searchProperty(query, offset: 0, filter: filter);
 
       emit(SearchPropertySuccess(
           searchQuery: query,

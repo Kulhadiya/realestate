@@ -5,8 +5,11 @@ class OtherInterests extends StatefulWidget {
   final Function(
           RangeValues priceRange, String location, List<int> propertyType)
       onInteraction;
-  const OtherInterests(
-      {super.key, required this.onInteraction, required this.type});
+  const OtherInterests({
+    super.key,
+    required this.onInteraction,
+    required this.type,
+  });
 
   @override
   State<OtherInterests> createState() => _OtherInterestsState();
@@ -14,14 +17,14 @@ class OtherInterests extends StatefulWidget {
 
 class _OtherInterestsState extends State<OtherInterests> {
   String selectedLocation = "";
-  final TextEditingController _controller = TextEditingController();
-  late final min = personalizedInterestSettings.priceRange.first ?? 0.0;
-  late final max = personalizedInterestSettings.priceRange.last ?? 1.0;
+  final TextEditingController _cityController = TextEditingController();
+  late final min = personalizedInterestSettings.priceRange.first;
+  late final max = personalizedInterestSettings.priceRange.last;
   RangeValues _priceRangeValues = const RangeValues(0, 100);
   RangeValues _selectedRangeValues = const RangeValues(0, 50);
 
   GooglePlaceRepository googlePlaceRepository = GooglePlaceRepository();
-  List<int> selectedPropertyType = [1, 2];
+  List<int> selectedPropertyType = [0, 1];
   @override
   void initState() {
     Future.delayed(
@@ -30,7 +33,8 @@ class _OtherInterestsState extends State<OtherInterests> {
         selectedPropertyType = personalizedInterestSettings.propertyType;
 
         if (personalizedInterestSettings.city.isNotEmpty) {
-          _controller.text = personalizedInterestSettings.city.firstUpperCase();
+          _cityController.text =
+              personalizedInterestSettings.city.firstUpperCase();
           selectedLocation = personalizedInterestSettings.city;
         }
 
@@ -57,9 +61,8 @@ class _OtherInterestsState extends State<OtherInterests> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    bool isFirstTime = widget.type == PersonalizedVisitType.FirstTime;
-
+  Widget build(final BuildContext context) {
+    final bool isFirstTime = widget.type == PersonalizedVisitType.FirstTime;
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20.0, 0, 20, 20),
@@ -73,7 +76,9 @@ class _OtherInterestsState extends State<OtherInterests> {
                 const Spacer(
                   flex: 2,
                 ),
-                Text("selectCityYouWantToSee".translate(context))
+                Text(
+                  "selectCityYouWantToSee".translate(context),
+                )
                     .color(context.color.textColorDark)
                     .size(context.font.extraLarge)
                     .centerAlign(),
@@ -120,7 +125,6 @@ class _OtherInterestsState extends State<OtherInterests> {
             PropertyTypeSelector(
               onInteraction: (List<int> values) {
                 selectedPropertyType = values;
-
                 widget.onInteraction
                     .call(_selectedRangeValues, selectedLocation, values);
 
@@ -130,7 +134,9 @@ class _OtherInterestsState extends State<OtherInterests> {
             const SizedBox(
               height: 25,
             ),
-            Text("chooseTheBudeget".translate(context))
+            Text(
+              "chooseTheBudeget".translate(context),
+            )
                 .color(context.color.textColorDark)
                 .size(context.font.extraLarge)
                 .centerAlign(),
@@ -191,35 +197,44 @@ class _OtherInterestsState extends State<OtherInterests> {
     return Padding(
       padding: const EdgeInsets.all(0.0),
       child: TypeAheadField(
-        debounceDuration: const Duration(milliseconds: 500),
+        errorBuilder: (context, error) {
+          return Container(
+            child: Text("Error"),
+          );
+        },
+
         loadingBuilder: (context) {
           return Center(child: UiUtils.progress());
         },
-        minCharsForSuggestions: 2,
-        textFieldConfiguration: TextFieldConfiguration(
-            controller: _controller,
-            decoration: InputDecoration(
-              hintText: "searchCity".translate(context),
-              suffixIcon: GestureDetector(
-                  onTap: () {
-                    _controller.text = "";
-                  },
-                  child: Icon(
-                    Icons.close,
-                    color: context.color.tertiaryColor,
-                  )),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: context.color.tertiaryColor),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(color: context.color.tertiaryColor),
-              ),
-            )),
-        suggestionsBoxDecoration: SuggestionsBoxDecoration(
-          color: context.color.secondaryColor.withOpacity(1),
-        ),
+        // builder: (context, controller, focusNode) {
+        //   return TextField(
+        //     controller: controller,
+        //     decoration: InputDecoration(
+        //       hintText: "searchCity".translate(context),
+        //       suffixIcon: GestureDetector(
+        //           onTap: () {
+        //             _cityController.text = "";
+        //           },
+        //           child: Icon(
+        //             Icons.close,
+        //             color: context.color.tertiaryColor,
+        //           )),
+        //       border: OutlineInputBorder(
+        //         borderRadius: BorderRadius.circular(10),
+        //         borderSide: BorderSide(color: context.color.tertiaryColor),
+        //       ),
+        //       focusedBorder: OutlineInputBorder(
+        //         borderRadius: BorderRadius.circular(10),
+        //         borderSide: BorderSide(color: context.color.tertiaryColor),
+        //       ),
+        //     ),
+        //   );
+        // },
+        // minCharsForSuggestions: 2,
+
+        // suggestionsBoxDecoration: SuggestionsBoxDecoration(
+        //   color: context.color.secondaryColor.withOpacity(1),
+        // ),
         itemBuilder: (context, GooglePlaceModel itemData) {
           List<String> address = [
             itemData.city,
@@ -231,22 +246,27 @@ class _OtherInterestsState extends State<OtherInterests> {
             title: Text(address.join(",").toString()),
           );
         },
-        onSuggestionSelected: (GooglePlaceModel suggestion) {
+
+        suggestionsCallback: (String pattern) async {
+          print("pattern here $pattern");
+          if (pattern.length < 2) {
+            return Future.value(<GooglePlaceModel>[]);
+          }
+          return await googlePlaceRepository.serchCities(pattern);
+        },
+        onSelected: (GooglePlaceModel suggestion) {
           List<String> addressList = [
             suggestion.city,
             // suggestion.state,
             // suggestion.country
           ];
           String address = addressList.join(",");
-          _controller.text = address;
+          _cityController.text = address;
           selectedLocation = address;
           widget.onInteraction.call(
               _selectedRangeValues, selectedLocation, selectedPropertyType);
 
           setState(() {});
-        },
-        suggestionsCallback: (pattern) async {
-          return await googlePlaceRepository.serchCities(pattern);
         },
       ),
     );
@@ -265,7 +285,7 @@ class PropertyTypeSelector extends StatefulWidget {
 }
 
 class _PropertyTypeSelectorState extends State<PropertyTypeSelector> {
-  List<int> selectedPropertyType = [1, 2];
+  List<int> selectedPropertyType = [0, 1];
   @override
   void initState() {
     Future.delayed(
@@ -287,7 +307,7 @@ class _PropertyTypeSelectorState extends State<PropertyTypeSelector> {
       children: [
         GestureDetector(
           onTap: () {
-            selectedPropertyType.clearAndAddAll([1, 2]);
+            selectedPropertyType.clearAndAddAll([0, 1]);
             widget.onInteraction.call(selectedPropertyType);
 
             setState(() {});
@@ -296,10 +316,10 @@ class _PropertyTypeSelectorState extends State<PropertyTypeSelector> {
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
             label: Text("all".translate(context))
                 .size(context.font.large)
-                .color(selectedPropertyType.containesAll([1, 2])
+                .color(selectedPropertyType.containesAll([0, 1])
                     ? context.color.buttonColor
                     : context.color.textColorDark),
-            backgroundColor: selectedPropertyType.containesAll([1, 2])
+            backgroundColor: selectedPropertyType.containesAll([0, 1])
                 ? context.color.tertiaryColor
                 : context.color.secondaryColor,
           ),

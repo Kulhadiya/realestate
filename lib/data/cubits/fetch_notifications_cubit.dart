@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../Repositories/notifications_repository_repository.dart';
+import '../repositories/notifications_repository_repository.dart';
 import '../model/data_output.dart';
 import '../model/notification_data.dart';
 

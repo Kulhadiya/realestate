@@ -1,4 +1,5 @@
 import 'package:ebroker/data/cubits/Report/property_report_cubit.dart';
+import 'package:ebroker/data/model/report_property/reason_model.dart';
 import 'package:ebroker/utils/Extensions/extensions.dart';
 import 'package:ebroker/utils/helper_utils.dart';
 import 'package:ebroker/utils/responsiveSize.dart';
@@ -7,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/cubits/Report/fetch_property_report_reason_list.dart';
-import '../../../data/model/ReportProperty/reason_model.dart';
 
 class ReportPropertyScreen extends StatefulWidget {
   final int propertyId;
@@ -87,22 +87,6 @@ class _ReportPropertyScreenState extends State<ReportPropertyScreen> {
                               : context.color.textColorDark),
                     ),
                   ),
-                );
-
-                return RadioListTile(
-                  value: reasons![index].id,
-                  groupValue: selectedId,
-                  fillColor:
-                      MaterialStatePropertyAll(context.color.tertiaryColor),
-                  onChanged: (dynamic value) {
-                    if (selectedId == value) {
-                      selectedId = -10;
-                    } else {
-                      selectedId = value;
-                    }
-                    setState(() {});
-                  },
-                  title: Text(reasons![index].reason.firstUpperCase()),
                 );
               },
             ),

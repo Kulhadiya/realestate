@@ -7,7 +7,7 @@ import '../data/model/propery_filter_model.dart';
 
 const String svgPath = 'assets/svg/';
 
-class Constant {
+abstract class Constant {
   static const String appName = AppSettings.applicationName;
   static const String androidPackageName = AppSettings.androidPackageName;
   static const String iOSAppId = AppSettings.iOSAppId;
@@ -20,6 +20,10 @@ class Constant {
 
   //Do not add anything here
   static String googlePlaceAPIkey = "";
+
+  ///These task IDs are for load task parallel into the isolate .
+  static int? languageTaskId;
+  static int? appSettingTaskId;
 
   ///admob
   static bool isAdmobAdsEnabled = false;
@@ -131,25 +135,8 @@ class Constant {
   ///This is limit of minimum chat messages load count , make sure you set it grater than 25;
   static int minChatMessages = 35;
 
-  static List promotedProeprtiesIds = [];
   //assets/riveAnimations
   static const riveAnimation = "rive_animation.riv";
-
-  ///There are only few RTL languages so we have added it staticly and if you find another one you can add it in list from [settings.dart] file
-  static Set totalRtlLanguages = {
-    "ar", //Arabic -
-    "he", //Hebrew
-    "fa", //Persian (Farsi) -
-    "ur", //Urdu
-    "ps", //Pashto
-    "sd", //Sindhi
-    "ku", //Kurdish
-    "prs", //Dari
-    "bal", //Balochi
-    "arc", //Aramaic
-  }..addAll(
-      AppSettings.additionalRTLlanguages,
-    );
 
   static bool showExperimentals = true;
   //Don't touch this settings
@@ -197,6 +184,7 @@ modM8h9DRzp9OaAJqxfP960q
   static bool isDemoModeOn = false;
   static String demoCountryCode = "91";
   static String demoMobileNumber = "1234567890";
+  static String demoFirebaseID = "6a1Zdl2TxORQGbCazj4XDGfgBBG3";
   static String demoModeOTP = "123456";
 
   static bool adaptThemeColorSvg = true;

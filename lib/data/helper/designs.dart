@@ -1,10 +1,11 @@
 import 'dart:ui';
 
-import '../../Ui/Theme/theme.dart';
-import '../../utils/constant.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+
+import '../../ui/Theme/theme.dart';
+import '../../utils/constant.dart';
 
 const double defaultPadding = 20;
 

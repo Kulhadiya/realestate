@@ -1,31 +1,9 @@
-import 'dart:async';
-
-import 'package:ebroker/Ui/screens/home/Widgets/property_horizontal_card.dart';
-import 'package:ebroker/Ui/screens/widgets/shimmerLoadingContainer.dart';
-import 'package:ebroker/data/Repositories/map.dart';
-import 'package:ebroker/data/Repositories/property_repository.dart';
-import 'package:ebroker/data/helper/widgets.dart';
-import 'package:ebroker/data/model/data_output.dart';
-import 'package:ebroker/data/model/property_model.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/constant.dart';
-import 'package:ebroker/utils/helper_utils.dart';
-import 'package:ebroker/utils/hive_utils.dart';
-import 'package:ebroker/utils/responsiveSize.dart';
+import 'package:ebroker/data/repositories/map.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:ebroker/utils/string_extenstion.dart';
-import 'package:ebroker/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:label_marker/label_marker.dart';
-
-import '../../../app/routes.dart';
-import '../../../data/Repositories/location_repository.dart';
-import '../../../data/model/google_place_model.dart';
-import '../../../settings.dart';
-import '../../../utils/AppIcon.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
 
 class PropertyMapScreen extends StatefulWidget {
   const PropertyMapScreen({super.key});

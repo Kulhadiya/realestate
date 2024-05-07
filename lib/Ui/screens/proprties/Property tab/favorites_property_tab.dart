@@ -1,18 +1,5 @@
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../../app/routes.dart';
-import '../../../../data/cubits/Utility/like_properties.dart';
-import '../../../../data/cubits/favorite/add_to_favorite_cubit.dart';
-import '../../../../data/cubits/favorite/fetch_favorites_cubit.dart';
-import '../../../../data/helper/designs.dart';
-import '../../../../data/model/property_model.dart';
-import '../../../../utils/Extensions/extensions.dart';
-import '../../../../utils/ui_utils.dart';
-import '../../home/Widgets/property_horizontal_card.dart';
-import '../../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../../widgets/Erros/no_data_found.dart';
-import '../../widgets/shimmerLoadingContainer.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});

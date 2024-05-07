@@ -1,20 +1,8 @@
-import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart'
-    show BlurredRouter;
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart' show Html;
 
-import '../../../app/routes.dart';
-import '../../../data/cubits/fetch_articles_cubit.dart';
 import '../../../data/model/article_model.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/api.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/Erros/no_data_found.dart';
-import '../widgets/Erros/no_internet.dart' show NoInternet;
-import '../widgets/Erros/something_went_wrong.dart';
-import '../widgets/shimmerLoadingContainer.dart';
 
 class ArticlesScreen extends StatefulWidget {
   const ArticlesScreen({super.key});
@@ -78,15 +66,14 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
               return buildArticlesShimmer();
             }
             if (state is FetchArticlesFailure) {
-              if (state.errorMessage is ApiException) {
-                if (state.errorMessage.errorMessage == "no-internet") {
-                  return NoInternet(
-                    onRetry: () {
-                      context.read<FetchArticlesCubit>().fetchArticles();
-                    },
-                  );
-                }
+              if (state.errorMessage is NoInternetConnectionError) {
+                return NoInternet(
+                  onRetry: () {
+                    context.read<FetchArticlesCubit>().fetchArticles();
+                  },
+                );
               }
+
               return const SomethingWentWrong();
             }
             if (state is FetchArticlesSuccess) {
@@ -191,9 +178,9 @@ class _ArticlesScreenState extends State<ArticlesScreen> {
                 ),
                 Padding(
                   padding: const EdgeInsetsDirectional.fromSTEB(12.0, 4, 12, 6),
-                  child: Text(article.date == null
-                          ? ""
-                          : article.date.toString().formatDate())
+                  child: Text(
+                    article.date == null ? "" : article.date.toString(),
+                  )
                       .size(context.font.smaller)
                       .color(context.color.textLightColor),
                 ),

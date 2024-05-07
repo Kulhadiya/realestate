@@ -1,17 +1,8 @@
-import 'package:ebroker/Ui/screens/widgets/Erros/no_internet.dart';
-import 'package:ebroker/utils/api.dart';
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/cubits/Utility/fetch_transactions_cubit.dart';
 import '../../../data/model/transaction_model.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/constant.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
-import '../widgets/Erros/no_data_found.dart';
-import '../widgets/Erros/something_went_wrong.dart';
 
 class TransactionHistory extends StatefulWidget {
   const TransactionHistory({super.key});
@@ -75,16 +66,12 @@ class _TransactionHistoryState extends State<TransactionHistory> {
             );
           }
           if (state is FetchTransactionsFailure) {
-            ;
-            if (state.errorMessage is ApiException) {
-              if ((state.errorMessage as dynamic).errorMessage ==
-                  "no-internet") {
-                return NoInternet(
-                  onRetry: () {
-                    context.read<FetchTransactionsCubit>().fetchTransactions();
-                  },
-                );
-              }
+            if (state.errorMessage is NoInternetConnectionError) {
+              return NoInternet(
+                onRetry: () {
+                  context.read<FetchTransactionsCubit>().fetchTransactions();
+                },
+              );
             }
 
             return const SomethingWentWrong();

@@ -1,23 +1,12 @@
-import 'dart:developer';
-
-import 'package:ebroker/Ui/screens/widgets/AnimatedRoutes/blur_page_route.dart';
-import 'package:ebroker/data/Repositories/location_repository.dart';
 import 'package:ebroker/data/model/category.dart';
 import 'package:ebroker/data/model/outdoor_facility.dart';
 import 'package:ebroker/exports/main_export.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
 import 'package:ebroker/utils/Extensions/lib/list.dart';
 import 'package:ebroker/utils/string_extenstion.dart';
-import 'package:ebroker/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 
-import '../../../data/Repositories/personalized_feed_repository.dart';
 import '../../../data/cubits/Personalized/add_update_personalized_interest.dart';
-import '../../../data/cubits/Personalized/fetch_personalized_properties.dart';
-import '../../../data/helper/widgets.dart';
-import '../../../data/model/google_place_model.dart';
-import '../../../utils/helper_utils.dart';
 
 part 'segments/choose_category.dart';
 part 'segments/choose_nearby.dart';
@@ -61,6 +50,10 @@ class _PersonalizedPropertyScreenState
   }
 
   final PageController _pageController = PageController();
+
+  Future<void> onClearFilter() async {
+    await PersonalizedFeedRepository().clearPersonalizedSettings(context);
+  }
 
   @override
   void dispose() {
@@ -124,6 +117,7 @@ class _PersonalizedPropertyScreenState
               children: [
                 CategoryInterestChoose(
                   controller: _pageController,
+                  onClearFilter: onClearFilter,
                   type: widget.type,
                   onInteraction: _onCategoryInteraction,
                 ),

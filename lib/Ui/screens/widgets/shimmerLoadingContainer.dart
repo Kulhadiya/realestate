@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
-import '../../Theme/theme.dart';
+import '../../theme/theme.dart';
 
 class CustomShimmer extends StatelessWidget {
   final double? height;

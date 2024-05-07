@@ -58,12 +58,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       },
     );
 
-    Future.delayed(
-      Duration.zero,
-      () {
-        setState(() {});
-      },
-    );
+    Future.delayed(Duration.zero, () {
+      setState(() {});
+    });
     super.initState();
   }
 
@@ -111,6 +108,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           delegates: LottieDelegates(
                             values: [],
                           ),
+                          errorBuilder: (context, error, stackTrace) {
+                            print("ST $error");
+                            return Container();
+                          },
                         )
                       : Container(),
                 )),

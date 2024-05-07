@@ -70,6 +70,7 @@ class AuthCubit extends Cubit<AuthState> {
       double? longitude,
       String? city,
       String? state,
+      String? phone,
       String? country}) async {
     Map<String, dynamic> parameters = {
       Api.name: name ?? '',
@@ -77,6 +78,7 @@ class AuthCubit extends Cubit<AuthState> {
       Api.address: address ?? '',
       Api.fcmId: fcmToken ?? '',
       Api.userid: HiveUtils.getUserId(),
+      "mobile": phone,
       Api.notification: notification,
       "city": city ?? HiveUtils.getCityName(),
       "state": state ?? HiveUtils.getStateName(),
@@ -89,7 +91,6 @@ class AuthCubit extends Cubit<AuthState> {
     if (latitude != null && longitude != null) {
       parameters.addAll({"latitude": latitude, "longitude": longitude});
     }
-    print("I AM DATA ${parameters}");
 
     var response =
         await Api.post(url: Api.apiUpdateProfile, parameter: parameters);

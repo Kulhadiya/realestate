@@ -1,40 +1,11 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:ebroker/Ui/screens/ChatNew/MessageTypes/blueprint.dart';
-import 'package:ebroker/Ui/screens/ChatNew/MessageTypes/registerar.dart';
-import 'package:ebroker/Ui/screens/ChatNew/model.dart';
-import 'package:ebroker/Ui/screens/widgets/blurred_dialoge_box.dart';
-import 'package:ebroker/app/app.dart';
-import 'package:ebroker/data/cubits/chatCubits/delete_message_cubit.dart';
-import 'package:ebroker/utils/customHeroAnimation.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/ui/screens/chat/chat_audio/widgets/chat_widget.dart';
+import 'package:ebroker/ui/screens/chat/chat_audio/widgets/record_button.dart';
+import 'package:ebroker/ui/screens/chat_new/message_types/blueprint.dart';
+import 'package:ebroker/ui/screens/chat_new/message_types/registerar.dart';
+import 'package:ebroker/ui/screens/chat_new/model.dart';
+import 'package:ebroker/ui/screens/widgets/animated_routes/transparant_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:permission_handler/permission_handler.dart';
-
-import '../../../app/default_app_setting.dart';
-import '../../../app/routes.dart';
-import '../../../data/Repositories/property_repository.dart';
-import '../../../data/cubits/chatCubits/load_chat_messages.dart';
-import '../../../data/cubits/chatCubits/send_message.dart';
-import '../../../data/helper/widgets.dart';
-import '../../../data/model/data_output.dart';
-import '../../../data/model/property_model.dart';
-import '../../../utils/AppIcon.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/Notification/chat_message_handler.dart';
-import '../../../utils/Notification/notification_service.dart';
-import '../../../utils/constant.dart';
-import '../../../utils/helper_utils.dart';
-import '../../../utils/hive_utils.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/transparant_route.dart';
-import 'chatAudio/widgets/chat_widget.dart';
-import 'chatAudio/widgets/record_button.dart';
 
 int totalMessageCount = 0;
 
@@ -87,7 +58,6 @@ class _ChatScreenState extends State<ChatScreen>
         if (_pageScrollController.offset >=
             _pageScrollController.position.maxScrollExtent) {
           if (context.read<LoadChatMessagesCubit>().hasMoreChat()) {
-            // setState(() {});
             context.read<LoadChatMessagesCubit>().loadMore();
           }
         }

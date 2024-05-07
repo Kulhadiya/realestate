@@ -1,7 +1,7 @@
-import 'package:ebroker/Ui/screens/proprties/viewAll.dart';
-import 'package:ebroker/data/Repositories/property_repository.dart';
 import 'package:ebroker/data/model/data_output.dart';
 import 'package:ebroker/data/model/property_model.dart';
+import 'package:ebroker/data/repositories/property_repository.dart';
+import 'package:ebroker/ui/screens/proprties/viewAll.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../settings.dart';
@@ -93,7 +93,9 @@ class FetchRecentPropertiesFailur extends FetchRecentPropertiesState
 class FetchRecentPropertiesCubit extends Cubit<FetchRecentPropertiesState>
     with HydratedMixin
     implements PropertyCubitWireframe {
-  FetchRecentPropertiesCubit() : super(FetchRecentProepertiesInitial());
+  FetchRecentPropertiesCubit() : super(FetchRecentProepertiesInitial()) {
+    hydrate();
+  }
 
   final PropertyRepository _propertyRepository = PropertyRepository();
   @override
@@ -114,16 +116,6 @@ class FetchRecentPropertiesCubit extends Cubit<FetchRecentPropertiesState>
         emit(FetchRecentPropertiesInProgress());
       }
 
-      // if(forceRefresh==true){
-      //
-      //
-      // }else{
-      //   if(state is! FetchRecentPropertiesSuccess){
-      //
-      //   }else{
-      //
-      //   }
-      // }
       if (forceRefresh == true) {
         DataOutput<PropertyModel> result =
             await _propertyRepository.fetchRecentProperties(offset: 0);

@@ -9,7 +9,7 @@ class Category {
   String? image;
   //String? typeids;
   //List<Type>? type;
-  Map? parameterTypes;
+  List? parameterTypes;
   //List<Map> fields = [];
   Category({this.id, this.category, this.image, this.parameterTypes});
 
@@ -17,7 +17,9 @@ class Category {
     id = json[Api.id].toString();
     category = json[Api.category];
     image = json[Api.image] ?? "";
-    parameterTypes = json[Api.parameterTypes] ?? {};
+    parameterTypes = json[Api.parameterTypes] is Map
+        ? json[Api.parameterTypes]['parameters']
+        : (json[Api.parameterTypes] ?? []);
   }
 
   Category.fromProperty(Map<String, dynamic> json) {

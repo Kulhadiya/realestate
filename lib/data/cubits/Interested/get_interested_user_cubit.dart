@@ -1,6 +1,5 @@
-import 'package:ebroker/data/Repositories/interest_repository.dart';
-import 'package:ebroker/data/model/data_output.dart';
 import 'package:ebroker/data/model/interested_user_model.dart';
+import 'package:ebroker/data/repositories/interest_repository.dart';
 
 import '../../../exports/main_export.dart';
 

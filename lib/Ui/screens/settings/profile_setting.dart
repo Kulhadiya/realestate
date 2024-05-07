@@ -1,13 +1,7 @@
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../../../data/cubits/profile_setting_cubit.dart';
-import '../../../data/helper/widgets.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/ui_utils.dart';
-import '../widgets/AnimatedRoutes/blur_page_route.dart';
 
 class ProfileSettings extends StatefulWidget {
   final String? title;
@@ -56,8 +50,18 @@ class ProfileSettingsState extends State<ProfileSettings> {
         } else if (state is ProfileSettingFetchSuccess) {
           return contentWidget(state, context);
         } else if (state is ProfileSettingFetchFailure) {
-          // log("HELLo");
-          // return Center(child: Text(state.errmsg));
+          if (state.errmsg is NoInternetConnectionError) {
+            return NoInternet(
+              onRetry: () {
+                context.read<ProfileSettingCubit>().fetchProfileSetting(
+                      context,
+                      widget.param!,
+                      forceRefresh: true,
+                    );
+              },
+            );
+          }
+
           return Widgets.noDataFound(state.errmsg);
         } else {
           return const SizedBox.shrink();

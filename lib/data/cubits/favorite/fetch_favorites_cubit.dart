@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../Repositories/favourites_repository.dart';
+import '../../repositories/favourites_repository.dart';
 import '../../model/data_output.dart';
 import '../../model/property_model.dart';
 

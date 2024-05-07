@@ -1,6 +1,9 @@
+import 'dart:developer';
+
 import '../../utils/api.dart';
 import '../../utils/constant.dart';
 import '../../utils/hive_utils.dart';
+import '../helper/filter.dart';
 import '../model/data_output.dart';
 import '../model/property_model.dart';
 
@@ -166,7 +169,8 @@ class PropertyRepository {
   Future<DataOutput<PropertyModel>> fetchNearByProperty(
       {required int offset}) async {
     try {
-      if (HiveUtils.getCityName() == null||HiveUtils.getCityName().toString().isEmpty) {
+      if (HiveUtils.getCityName() == null ||
+          HiveUtils.getCityName().toString().isEmpty) {
         return Future.value(DataOutput(
           total: 0,
           modelList: [],
@@ -241,17 +245,14 @@ class PropertyRepository {
 
   ///Search proeprty
   Future<DataOutput<PropertyModel>> searchProperty(String searchQuery,
-      {required int offset}) async {
+      {required int offset, FilterApply? filter}) async {
     Map<String, dynamic> parameters = {
       Api.search: searchQuery,
       Api.offset: offset,
       Api.limit: Constant.loadLimit,
-      "current_user": HiveUtils.getUserId()
+      "current_user": HiveUtils.getUserId(),
+      ...filter?.getFilter() ?? {}
     };
-
-    if (Constant.propertyFilter != null) {
-      parameters.addAll(Constant.propertyFilter!.toMap());
-    }
 
     Map<String, dynamic> response =
         await Api.get(url: Api.apiGetProprty, queryParameters: parameters);
@@ -297,26 +298,30 @@ class PropertyRepository {
     return null;
   }
 
-  Future<DataOutput<PropertyModel>> fetchProperyFromCategoryId(
-      {required int id, required int offset, bool? showPropertyType}) async {
+  Future<DataOutput<PropertyModel>> fetchProperyFromCategoryId({
+    required int id,
+    required int offset,
+    FilterApply? filter,
+    bool? showPropertyType,
+  }) async {
     Map<String, dynamic> parameters = {
       Api.categoryId: id,
       Api.offset: offset,
       Api.limit: Constant.loadLimit,
-      "current_user": HiveUtils.getUserId()
+      "current_user": HiveUtils.getUserId(),
+      ...filter?.getFilter() ?? {}
     };
 
-    if (Constant.propertyFilter != null) {
-      parameters.addAll(Constant.propertyFilter!.toMap());
-
-      if (Constant.propertyFilter?.categoryId == "") {
-        if (showPropertyType ?? true) {
-          parameters.remove(Api.categoryId);
-        } else {
-          parameters[Api.categoryId] = id;
-        }
-      }
-    }
+    // if (filter != null) {
+    //   // parameters.addAll(Constant.propertyFilter!.toMap());
+    //   if (Constant.propertyFilter?.categoryId == "") {
+    //     if (showPropertyType ?? true) {
+    //       parameters.remove(Api.categoryId);
+    //     } else {
+    //       parameters[Api.categoryId] = id;
+    //     }
+    //   }
+    // }
 
     Map<String, dynamic> response =
         await Api.get(url: Api.apiGetProprty, queryParameters: parameters);

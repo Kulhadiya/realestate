@@ -2,13 +2,15 @@ part of '../personalized_property_screen.dart';
 
 class CategoryInterestChoose extends StatefulWidget {
   final PageController controller;
+  final VoidCallback onClearFilter;
   final PersonalizedVisitType type;
   final Function(List<int> selectedCategoryId) onInteraction;
   const CategoryInterestChoose(
       {super.key,
       required this.controller,
       required this.onInteraction,
-      required this.type});
+      required this.type,
+      required this.onClearFilter});
 
   @override
   State<CategoryInterestChoose> createState() => _CategoryInterestChooseState();
@@ -38,9 +40,17 @@ class _CategoryInterestChooseState extends State<CategoryInterestChoose>
                 .color(context.color.textColorDark)
                 .size(context.font.xxLarge)
                 .centerAlign(),
-            Spacer(
-              flex: isFirstTime ? 1 : 2,
+            const Spacer(
+              flex: 1,
             ),
+            if (!isFirstTime)
+              GestureDetector(
+                  onTap: () {
+                    widget.onClearFilter.call();
+                  },
+                  child: Chip(
+                      label: Text("Clear".translate(context))
+                          .color(context.color.buttonColor))),
             if (isFirstTime)
               GestureDetector(
                   onTap: () {

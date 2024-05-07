@@ -1,14 +1,14 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
-import 'package:ebroker/Ui/screens/proprties/viewAll.dart';
+import 'package:ebroker/ui/screens/proprties/viewAll.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../settings.dart';
 import '../../../utils/Network/networkAvailability.dart';
-import '../../Repositories/property_repository.dart';
 import '../../model/data_output.dart';
 import '../../model/property_model.dart';
+import '../../repositories/property_repository.dart';
 
 abstract class FetchMostLikedPropertiesState {}
 
@@ -101,15 +101,14 @@ class FetchMostLikedPropertiesFailure extends FetchMostLikedPropertiesState
 class FetchMostLikedPropertiesCubit extends Cubit<FetchMostLikedPropertiesState>
     with HydratedMixin
     implements PropertyCubitWireframe {
-  FetchMostLikedPropertiesCubit() : super(FetchMostLikedPropertiesInitial());
+  FetchMostLikedPropertiesCubit() : super(FetchMostLikedPropertiesInitial()) {
+    hydrate();
+  }
 
   final PropertyRepository _propertyRepository = PropertyRepository();
 
   @override
   Future<void> fetch({bool? forceRefresh, bool? loadWithoutDelay}) async {
-    // if (state is FetchMostLikedPropertiesSuccess) {
-    //   return;
-    // }
     if (forceRefresh != true) {
       if (state is FetchMostLikedPropertiesSuccess) {
         // WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
@@ -170,6 +169,7 @@ class FetchMostLikedPropertiesCubit extends Cubit<FetchMostLikedPropertiesState>
               );
             },
             onNoInternet: () {
+              print("${state.toString()} state is the");
               emit(
                 FetchMostLikedPropertiesSuccess(
                     total: (state as FetchMostLikedPropertiesSuccess).total,
@@ -186,6 +186,7 @@ class FetchMostLikedPropertiesCubit extends Cubit<FetchMostLikedPropertiesState>
         }
       }
     } catch (e) {
+      print("Error is most liked $e");
       emit(FetchMostLikedPropertiesFailure(e as dynamic));
     }
   }

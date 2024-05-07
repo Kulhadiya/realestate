@@ -1,24 +1,26 @@
 import 'package:ebroker/app/register_cubits.dart';
+import 'package:ebroker/data/process/language_load_process.dart';
+import 'package:ebroker/ui/screens/chat/chat_audio/globals.dart';
+import 'package:ebroker/ui/screens/chat_new/message_types/registerar.dart';
+import 'package:ebroker/utils/Queue/queue.dart';
 import 'package:flutter/material.dart';
-
-import 'Ui/screens/ChatNew/MessageTypes/registerar.dart';
+import 'data/process/app_settings.dart';
 import 'exports/main_export.dart';
 
 /////////////////
-////V-1.1.3/////
+////V-1.1.4/////
 ///////////////
 
-///
-
 void main() async {
-  await getAppSettings();
+  WidgetsFlutterBinding.ensureInitialized();
+  await processQueue();
   initApp();
 }
 
 class EntryPoint extends StatefulWidget {
   const EntryPoint({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
   @override
   EntryPointState createState() => EntryPointState();
 }
@@ -41,4 +43,23 @@ class EntryPointState extends State<EntryPoint> {
           return const App();
         }));
   }
+}
+
+Future<void> processQueue() async {
+  try {
+    ///This is to load app settings and language setting apart from main thread to load app work more faster.
+    ProcessQueue processQueue = ProcessQueue();
+
+    ///This will start 2 isolate workers.
+    await processQueue.startIsolates(2);
+
+    ///Adding process to queue.
+    Constant.appSettingTaskId =
+        await processQueue.enqueueTask(AppSettingsLoadTask());
+
+    Constant.languageTaskId =
+        await processQueue.enqueueTask(LanguageLoadProcess());
+//Awaiting for the result of the appSettings
+    await processQueue.getResult(Constant.appSettingTaskId!);
+  } catch (e) {}
 }

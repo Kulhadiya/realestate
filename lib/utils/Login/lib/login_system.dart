@@ -1,9 +1,15 @@
 import 'package:ebroker/utils/Login/lib/payloads.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 import 'login_status.dart';
 
 abstract class LoginSystem {
+  BuildContext? context;
+  setContext(BuildContext context) {
+    this.context = context;
+  }
+
   List<Function(MLoginState fn)> listeners = [];
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
@@ -69,6 +75,11 @@ class MMultiAuthentication {
     this.systems, {
     this.payload,
   });
+  void setContext(BuildContext context) {
+    for (LoginSystem element in systems.values) {
+      element.setContext(context);
+    }
+  }
 
   ///This init will call all login system's init method by loop
   void init() {
@@ -77,7 +88,7 @@ class MMultiAuthentication {
     }
   }
 
-  requestVerification() {
+  void requestVerification() {
     systems.forEach((String key, LoginSystem value) async {
       //like assign the particular payload if key is matching to selected login system
       LoginSystem? selectedSystem;

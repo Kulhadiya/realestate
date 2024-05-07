@@ -1,21 +1,15 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:country_picker/country_picker.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:ebroker/exports/main_export.dart';
-//import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/api.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_native_image/flutter_native_image.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_sim_country_code/flutter_sim_country_code.dart';
 import 'package:http/http.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:open_filex/open_filex.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../data/helper/custom_exception.dart';
@@ -33,9 +27,9 @@ class HelperUtils {
   static Future<bool> checkInternet() async {
     bool check = false;
     var connectivityResult = await (Connectivity().checkConnectivity());
-    if (connectivityResult == ConnectivityResult.mobile) {
+    if (connectivityResult.contains(ConnectivityResult.mobile)) {
       check = true;
-    } else if (connectivityResult == ConnectivityResult.wifi) {
+    } else if (connectivityResult.contains(ConnectivityResult.wifi)) {
       check = true;
     }
     return check;
@@ -113,16 +107,39 @@ class HelperUtils {
 
     for (String imageUrl in urls) {
       if (isSvgUrl(imageUrl)) {
-        await precachePicture(
-          NetworkPicture(
-            SvgPicture.svgByteDecoderBuilder,
-            imageUrl,
-          ),
-          null,
-        );
+        // SvgNetworkLoader loader = SvgNetworkLoader(imageUrl);
+        // ByteData byteData = await svg.cache
+        //     .putIfAbsent(loader.cacheKey(null), () => loader.loadBytes(null));
+        // await precachePicture(
+        //   NetworkPicture(
+        //     SvgPicture.svgByteDecoderBuilder,
+        //     imageUrl,
+        //   ),
+        //   null,
+        // );
       } else {
         continue;
       }
+    }
+  }
+
+  static printServerError(
+    String url, {
+    required int statusCode,
+    required Map parameter,
+    required String response,
+  }) async {
+    Directory directory = await getApplicationDocumentsDirectory();
+    File file = File('${directory.path}/log($statusCode).html')
+      ..writeAsStringSync('''
+          $url,<br><br>
+          $parameter,<br></br>
+          Response: <br></br>
+          $response
+          ''');
+
+    if (statusCode == 500) {
+      await OpenFilex.open(file.path);
     }
   }
 
@@ -134,7 +151,7 @@ class HelperUtils {
   }
 
   static String nativeDeepLinkUrlOfProperty(String slug) {
-    return "https://${AppSettings.shareNavigationWebUrl}/properties-details/$slug";
+    return "https://${AppSettings.shareNavigationWebUrl}/properties-details/$slug/";
   }
 
   static void share(BuildContext context, int propertyId, String slugId) {
@@ -372,6 +389,41 @@ class HelperUtils {
     }
   }
 
+  static CountryService countryCodeService = CountryService();
+
+  /// it will return user's sim cards country code
+  static Future<Country> getSimCountry() async {
+    List<Country> countryList = countryCodeService.getAll();
+    String? simCountryCode;
+
+    try {
+      simCountryCode = await FlutterSimCountryCode.simCountryCode;
+    } catch (e) {
+      print("--don't--remove");
+    }
+
+    Country simCountry = countryList.firstWhere(
+      (element) {
+        return element.phoneCode == simCountryCode;
+      },
+      orElse: () {
+        return countryList
+            .where(
+              (element) => element.phoneCode == Constant.defaultCountryCode,
+            )
+            .first;
+      },
+    );
+
+    if (Constant.isDemoModeOn) {
+      simCountry = countryList
+          .where((element) => element.phoneCode == Constant.demoCountryCode)
+          .first;
+    }
+
+    return simCountry;
+  }
+
   static bool isYoutubeVideo(String url) {
     List youtubeDomains = ["youtu.be", "youtube.com"];
 
@@ -398,6 +450,13 @@ class HelperUtils {
   }
 }
 
+///Post Frame Callback
+void postFrame(void Function(Duration t) fn) {
+  WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+    fn.call(timeStamp);
+  });
+}
+
 extension StringCasingExtension on String {
   String toCapitalized() =>
       length > 0 ? '${this[0].toUpperCase()}${substring(1).toLowerCase()}' : '';
@@ -405,4 +464,47 @@ extension StringCasingExtension on String {
       .split(' ')
       .map((str) => str.toCapitalized())
       .join(' ');
+}
+
+extension ListExtensions<T> on List<T> {
+  Future<List<R>> parallelMap<R>(
+    FutureOr<R> Function(T) mapper, {
+    int concurrency = 1,
+  }) async {
+    final results = <R>[];
+    final queue = StreamController<T>.broadcast();
+    final done = Completer();
+
+    // Start worker functions
+    for (int i = 0; i < concurrency; i++) {
+      _startWorker(queue.stream, results, mapper, done);
+    }
+
+    // Add elements to the queue
+    for (var element in this) {
+      queue.add(element);
+    }
+    queue.close();
+
+    // Wait for all workers to finish
+    await done.future;
+
+    return results;
+  }
+
+  void _startWorker<T, R>(
+    Stream<T> input,
+    List<R> results,
+    FutureOr<R> Function(T) mapper,
+    Completer done,
+  ) {
+    input.listen((element) async {
+      final result = await mapper(element);
+      results.add(result);
+    }, onDone: () {
+      if (!done.isCompleted && results.length == this.length) {
+        done.complete();
+      }
+    });
+  }
 }

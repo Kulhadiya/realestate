@@ -1,43 +1,21 @@
 // import 'dart:async';
-
-import 'dart:async';
 import 'dart:developer';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:ebroker/Ui/screens/widgets/Erros/no_internet.dart';
-import 'package:ebroker/app/default_app_setting.dart';
-import 'package:ebroker/app/routes.dart';
+import 'package:ebroker/data/model/system_settings_model.dart';
 // import 'package:flutter/services.dart';
 // import 'package:flutter_svg/flutter_svg.dart';
 
 // import '../app/routes.dart';
-import 'package:ebroker/data/cubits/profile_setting_cubit.dart';
-import 'package:ebroker/data/cubits/system/fetch_language_cubit.dart';
-import 'package:ebroker/data/cubits/system/fetch_system_settings_cubit.dart';
-import 'package:ebroker/data/model/system_settings_model.dart';
-import 'package:ebroker/utils/AppIcon.dart';
-import 'package:ebroker/utils/Extensions/extensions.dart';
-import 'package:ebroker/utils/api.dart';
-import 'package:ebroker/utils/ui_utils.dart';
+import 'package:ebroker/exports/main_export.dart';
+import 'package:ebroker/utils/Queue/queue.dart';
 // import 'package:ebroker/main.dart';
 // import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive_flutter/adapters.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:permission_handler/permission_handler.dart';
 
-import '../../app/app.dart';
-import '../../app/app_theme.dart';
-import '../../data/Repositories/system_repository.dart';
-import '../../data/cubits/auth/auth_state_cubit.dart';
-import '../../data/cubits/category/fetch_category_cubit.dart';
-import '../../data/cubits/outdoorfacility/fetch_outdoor_facility_list.dart';
-import '../../data/cubits/system/app_theme_cubit.dart';
-import '../../utils/constant.dart';
+import '../../data/repositories/system_repository.dart';
 import '../../utils/hive_keys.dart';
-import '../../utils/hive_utils.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -56,25 +34,17 @@ class SplashScreenState extends State<SplashScreen>
 
   @override
   void initState() {
+    // Debugger().insert(context);
     context.read<FetchCategoryCubit>().fetchCategories();
     context.read<FetchOutdoorFacilityListCubit>().fetch();
     locationPermission();
 
     super.initState();
-    getLanguage().then((value) {
-      isLanguageLoaded = true;
-      setState(() {});
+    ProcessQueue().getResult(Constant.languageTaskId!).then((value) {
+      setState(() {
+        isLanguageLoaded = true;
+      });
     });
-
-    // languageSettingReceivePort.listen((message) {
-    //
-    // });
-    // getDefaultLanguage(
-    //   () {
-    //     isLanguageLoaded = true;
-    //     setState(() {});
-    //   },
-    // );
 
     checkIsUserAuthenticated();
     bool isDataAvailable = checkPersistedDataAvailibility();
@@ -85,7 +55,7 @@ class SplashScreenState extends State<SplashScreen>
             return NoInternet(
               onRetry: () async {
                 try {
-                  await LoadAppSettings().load();
+                  await LoadAppSettings().load(true);
                   if (context.color.brightness == Brightness.light) {
                     context.read<AppThemeCubit>().changeTheme(AppTheme.light);
                   } else {
@@ -138,14 +108,12 @@ class SplashScreenState extends State<SplashScreen>
       ///This call will load sensitive details with settings
       context.read<FetchSystemSettingsCubit>().fetchSettings(
             isAnonymouse: false,
-            forceRefresh: true,
           );
       completeProfileCheck();
     } else {
       //This call will hide sensitive details.
       context.read<FetchSystemSettingsCubit>().fetchSettings(
             isAnonymouse: true,
-            forceRefresh: true,
           );
     }
   }
@@ -233,10 +201,12 @@ class SplashScreenState extends State<SplashScreen>
       listener: (context, state) {},
       child: BlocListener<FetchSystemSettingsCubit, FetchSystemSettingsState>(
         listener: (context, state) {
-          if (state is FetchSystemSettingsFailure) {}
+          if (state is FetchSystemSettingsFailure) {
+            print("Issue while load system settyings ${state.errorMessage}");
+          }
           if (state is FetchSystemSettingsSuccess) {
-            var setting = [];
-            if ((setting as List).isNotEmpty) {
+            List setting = [];
+            if ((setting).isNotEmpty) {
               if ((setting[0] as Map).containsKey("package_id")) {
                 Constant.subscriptionPackageId = "";
               }
@@ -284,10 +254,11 @@ class SplashScreenState extends State<SplashScreen>
   }
 }
 
-Future getDefaultLanguage(VoidCallback onSuccess) async {
+Future getDefaultLanguage(
+  VoidCallback onSuccess,
+) async {
   try {
     // await Hive.initFlutter();v
-
     await Hive.openBox(HiveKeys.languageBox);
     await Hive.openBox(HiveKeys.userDetailsBox);
     await Hive.openBox(HiveKeys.authBox);

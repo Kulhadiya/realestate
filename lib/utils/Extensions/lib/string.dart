@@ -2,7 +2,7 @@ import 'dart:developer' as d;
 
 import 'package:ebroker/exports/main_export.dart';
 
-extension S on String {
+extension StringExtensiton on String {
   void get logg {
     if (Constant.terminalLogMode == "debug") {
       d.log(this);

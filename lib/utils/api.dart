@@ -11,6 +11,36 @@ import 'errorFilter.dart';
 import 'guestChecker.dart';
 import 'hive_keys.dart';
 
+enum StatusCode {
+  badRequest, // 400
+  unauthorized, // 401
+  forbidden, // 403
+  notFound, // 404
+  conflict, // 409
+  internalServerError; // 500
+}
+
+extension StatusCodeExtension on StatusCode {
+  int get code {
+    switch (this) {
+      case StatusCode.badRequest:
+        return 400;
+      case StatusCode.unauthorized:
+        return 401;
+      case StatusCode.forbidden:
+        return 403;
+      case StatusCode.notFound:
+        return 404;
+      case StatusCode.conflict:
+        return 409;
+      case StatusCode.internalServerError:
+        return 500;
+      default:
+        throw Exception("Unknown status code");
+    }
+  }
+}
+
 class ApiException implements Exception {
   ApiException(this.errorMessage);
 
@@ -104,6 +134,9 @@ class Api {
   static String getAppSettings = "get_app_settings";
   static String getInterestedUsers = "get_interested_users";
 
+  ///Personalized Feed APIs NEW
+  static String personalisedFields = "personalised-fields";
+
   ///
   static String createPaymentIntent = "createPaymentIntent";
 
@@ -188,7 +221,9 @@ class Api {
   static List<String> currentlyCallingAPI = [];
 
   static void initInterceptors() {
-    // dio.interceptors.add(ThrottleInterceptor(minInterval: 1000));
+    if (kDebugMode) {
+      // dio.interceptors.add(ThrottleInterceptor(minInterval: 1000));
+    }
 
     // dio.interceptors.add(InterceptorsWrapper(
     //   onRequest: (RequestOptions options, RequestInterceptorHandler handler) {
@@ -214,6 +249,32 @@ class Api {
     dio.interceptors.add(NetworkRequestInterseptor());
   }
 
+  static Future<Map<String, dynamic>> delete(
+      {required String url, bool? useAuthToken, bool? useBaseUrl}) async {
+    try {
+      Response response =
+          await dio.delete(((useBaseUrl ?? true) ? Constant.baseUrl : "") + url,
+              options: (useAuthToken ?? true)
+                  ? Options(
+                      contentType: "multipart/form-data",
+                      headers: headers(),
+                    )
+                  : Options(
+                      contentType: "multipart/form-data",
+                    ));
+
+      var resp = response.data;
+
+      if (resp['error'] ?? false) {
+        throw ApiException(resp['message'].toString());
+      }
+
+      return Map.from(resp);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   static Future<Map<String, dynamic>> post(
       {required String url,
       required Map<String, dynamic> parameter,
@@ -226,8 +287,7 @@ class Api {
         ListFormat.multiCompatible,
       );
 
-      // parameter.removeEmptyKeys();
-
+      log("Request-API:$url  and $parameter ");
       final response =
           await dio.post(((useBaseUrl ?? true) ? Constant.baseUrl : "") + url,
               data: formData,
@@ -239,35 +299,19 @@ class Api {
                   : Options(
                       contentType: "multipart/form-data",
                     ));
-      // dynamic resp = response.data.toString().trim();
       var resp = response.data;
 
-      // resp = JsonEncoder(resp);
       if (resp['error'] ?? false) {
         throw ApiException(resp['message'].toString());
       }
 
       return Map.from(resp);
-    } on DioError catch (e) {
-      if (e.response?.statusCode == 401) {
-        throw "auth-expired";
-      }
-
-      if (e.response?.statusCode == 503) {
-        throw "server-not-available";
-      }
-
-      throw ApiException(
-        e.error is SocketException
-            ? "no-internet"
-            : "Something went wrong with error ${e.response?.statusCode}",
-      );
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     } on ApiException catch (e) {
       throw ApiException(e.errorMessage);
-    } catch (e, st) {
-      print("API EXPE  $e $st");
-
-      throw ApiException(st.toString());
+    } catch (e) {
+      throw ApiException(e.toString());
     }
   }
 
@@ -277,34 +321,189 @@ class Api {
       Map<String, dynamic>? queryParameters,
       bool? useBaseUrl}) async {
     try {
-      //
-
       final response = await dio.get(
           ((useBaseUrl ?? true) ? Constant.baseUrl : "") + url,
           queryParameters: queryParameters,
           options: (useAuthToken ?? true) ? Options(headers: headers()) : null);
-      //log("API is ${url.toString()}");
-      //log("parameters are $queryParameters");
-      //log("response is ${response.data}");
+
       if (response.data['error'] == true) {
         throw ApiException(response.data['code'].toString());
       }
       return Map.from(response.data);
-    } on DioError catch (e) {
-      if (e.response?.statusCode == 401) {
-        throw "auth-expired";
-      }
-      if (e.response?.statusCode == 503) {
-        throw "server-not-available";
-      }
-
-      throw ApiException(e.error is SocketException
-          ? ('no-internet')
-          : "Something went wrong with error ${e.response?.statusCode}");
+    } on DioException catch (e) {
+      throw _handleDioError(e);
     } on ApiException catch (e) {
       throw ApiException(e.errorMessage);
-    } catch (e, st) {
-      throw ApiException(st.toString());
+    } catch (e) {
+      throw ApiException(e.toString());
     }
   }
+}
+
+abstract class Error {
+  StackTrace? stackTrace;
+  DioException? error;
+}
+
+Error _handleDioError(DioException error) {
+  if (error.error is SocketException) {
+    return NoInternetConnectionError(error, stackTrace: error.stackTrace);
+  }
+
+  switch (error.type) {
+    case DioExceptionType.connectionTimeout:
+    case DioExceptionType.sendTimeout:
+    case DioExceptionType.receiveTimeout:
+      return TimeoutError(error, stackTrace: error.stackTrace);
+    case DioExceptionType.badResponse:
+      final int? statusCode = error.response?.statusCode;
+      if (statusCode != null) {
+        if (statusCode == StatusCode.badRequest.code) {
+          return BadRequestError(error, stackTrace: error.stackTrace);
+        } else if (statusCode == StatusCode.unauthorized.code ||
+            statusCode == StatusCode.forbidden.code) {
+          return UnauthorizedError(error, stackTrace: error.stackTrace);
+        } else if (statusCode == StatusCode.notFound.code) {
+          return NotFoundError(error, stackTrace: error.stackTrace);
+        } else if (statusCode == StatusCode.conflict.code) {
+          return ConflictError(error, stackTrace: error.stackTrace);
+        } else if (statusCode == StatusCode.internalServerError.code) {
+          return InternalServerError(error, stackTrace: error.stackTrace);
+        } else {
+          return UnknownError(error, stackTrace: error.stackTrace);
+        }
+      }
+      break;
+    case DioExceptionType.cancel:
+      break;
+    case DioExceptionType.unknown:
+      return NoInternetConnectionError(error, stackTrace: error.stackTrace);
+    case DioExceptionType.badCertificate:
+      return BadCertificateError(error, stackTrace: error.stackTrace);
+    case DioExceptionType.connectionError:
+      return ConnectionError(error);
+    default:
+      return UnknownError(error, stackTrace: error.stackTrace);
+  }
+  return UnknownError(error, stackTrace: error.stackTrace);
+}
+
+class TimeoutError extends Error {
+  @override
+  final StackTrace? stackTrace;
+  @override
+  final DioException error;
+
+  TimeoutError(this.error, {this.stackTrace});
+
+  @override
+  String toString() => "Timeout occurred while sending or receiving\n$error";
+}
+
+class BadRequestError extends Error {
+  @override
+  final StackTrace? stackTrace;
+  @override
+  final DioException error;
+
+  BadRequestError(this.error, {this.stackTrace});
+
+  @override
+  String toString() => "Bad Request\n$error";
+}
+
+class UnauthorizedError extends Error {
+  @override
+  final StackTrace? stackTrace;
+  @override
+  final DioException error;
+
+  UnauthorizedError(this.error, {this.stackTrace});
+
+  @override
+  String toString() => "Unauthorized\n$error";
+}
+
+class NotFoundError extends Error {
+  @override
+  final StackTrace? stackTrace;
+  @override
+  final DioException error;
+
+  NotFoundError(this.error, {this.stackTrace});
+
+  @override
+  String toString() => "Not Found\n$error";
+}
+
+class ConflictError extends Error {
+  @override
+  final StackTrace? stackTrace;
+  @override
+  final DioException error;
+
+  ConflictError(this.error, {this.stackTrace});
+
+  @override
+  String toString() => "Conflict\n$error";
+}
+
+class InternalServerError extends Error {
+  @override
+  final StackTrace? stackTrace;
+  @override
+  final DioException error;
+
+  InternalServerError(this.error, {this.stackTrace});
+
+  @override
+  String toString() => "Internal Server Error\n$error";
+}
+
+class NoInternetConnectionError extends Error {
+  @override
+  final StackTrace? stackTrace;
+  @override
+  final DioException error;
+
+  NoInternetConnectionError(this.error, {this.stackTrace});
+
+  @override
+  String toString() => "No Internet Connection";
+}
+
+class BadCertificateError extends Error {
+  @override
+  final StackTrace? stackTrace;
+  @override
+  final DioException error;
+
+  BadCertificateError(this.error, {this.stackTrace});
+
+  @override
+  String toString() => "Bad Certificate\n$error";
+}
+
+class ConnectionError extends Error {
+  @override
+  final StackTrace? stackTrace;
+  @override
+  final DioException error;
+
+  ConnectionError(this.error, {this.stackTrace});
+
+  @override
+  String toString() => "Connection Error\n$error";
+}
+
+class UnknownError extends Error {
+  @override
+  final StackTrace? stackTrace;
+  @override
+  final DioException error;
+
+  UnknownError(this.error, {this.stackTrace});
+
+  @override
+  String toString() => "Unknown Error\n$error";
 }

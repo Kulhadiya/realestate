@@ -2,7 +2,7 @@
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../Repositories/location_repository.dart';
+import '../../repositories/location_repository.dart';
 import '../../model/google_place_model.dart';
 
 abstract class GooglePlaceAutocompleteState {}

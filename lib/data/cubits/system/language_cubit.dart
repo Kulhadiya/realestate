@@ -9,9 +9,10 @@ class LanguageState {}
 class LanguageInitial extends LanguageState {}
 
 class LanguageLoader extends LanguageState {
+  final bool isRTL;
   final dynamic languageCode;
 
-  LanguageLoader(this.languageCode);
+  LanguageLoader(this.languageCode, {required this.isRTL});
 }
 
 class LanguageLoadFail extends LanguageState {
@@ -26,9 +27,9 @@ class LanguageCubit extends Cubit<LanguageState> {
     var language =
         Hive.box(HiveKeys.languageBox).get(HiveKeys.currentLanguageKey);
     if (language != null) {
-      emit(LanguageLoader(language['code']));
+      emit(LanguageLoader(language['code'], isRTL: language['isRTL'] ?? false));
     } else {
-      emit(LanguageLoader("en"));
+      emit(LanguageLoader("en", isRTL: false));
     }
   }
 

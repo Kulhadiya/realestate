@@ -5,9 +5,9 @@ class CheckInternet {
   static Connectivity connectivity = Connectivity();
   static Future<void> check(
       {required Function() onInternet, Function()? onNoInternet}) async {
-    ConnectivityResult connectivityResult =
+    List<ConnectivityResult> connectivityResult =
         await connectivity.checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
+    if (connectivityResult.first == ConnectivityResult.none) {
       onNoInternet?.call();
     } else {
       onInternet.call();

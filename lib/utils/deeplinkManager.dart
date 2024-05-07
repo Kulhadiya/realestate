@@ -1,7 +1,7 @@
 // ignore_for_file: file_names
 
 import 'package:ebroker/app/routes.dart';
-import 'package:ebroker/data/Repositories/property_repository.dart';
+import 'package:ebroker/data/repositories/property_repository.dart';
 import 'package:ebroker/data/model/data_output.dart';
 import 'package:ebroker/data/model/property_model.dart';
 import 'package:ebroker/settings.dart';

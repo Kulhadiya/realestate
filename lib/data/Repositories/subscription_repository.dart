@@ -12,11 +12,13 @@ class SubscriptionRepository {
   Future<DataOutput<SubscriptionPackageModel>> getSubscriptionPackages({
     required int offset,
   }) async {
-    Map<String, dynamic> response =
-        await Api.get(url: Api.getPackage, queryParameters: {
-      "platform": Platform.isIOS ? "ios" : "android",
-      "current_user": HiveUtils.getUserId()
-    });
+    Map<String, dynamic> response = await Api.get(
+      url: Api.getPackage,
+      queryParameters: {
+        "platform": Platform.isIOS ? "ios" : "android",
+        "current_user": HiveUtils.getUserId()
+      },
+    );
 
     List<SubscriptionPackageModel> modelList = (response['data'] as List)
         .map((element) => SubscriptionPackageModel.fromJson(element))

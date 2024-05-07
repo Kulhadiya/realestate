@@ -2,7 +2,7 @@
 
 import 'dart:developer';
 
-import 'package:ebroker/data/Repositories/auth_repository.dart';
+import 'package:ebroker/data/repositories/auth_repository.dart';
 import 'package:ebroker/utils/errorFilter.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -43,7 +43,6 @@ class VerifyOtpCubit extends Cubit<VerifyOtpState> {
     } on FirebaseAuthException catch (e) {
       emit(VerifyOtpFailure(ErrorFilter.check(e.code).error));
     } catch (e, st) {
-      log("ISSUEEE $e $st");
       emit(VerifyOtpFailure(e.toString()));
     }
   }

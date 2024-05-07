@@ -1,8 +1,6 @@
 import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
 
-import '../../Repositories/personalized_feed_repository.dart';
-
 abstract class AddUpdatePersonalizedInterestState {}
 
 class AddUpdatePersonalizedInterestInitial

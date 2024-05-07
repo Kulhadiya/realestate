@@ -1,19 +1,7 @@
-import 'dart:async';
-
+import 'package:ebroker/exports/main_export.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../app/routes.dart';
-import '../../../data/Repositories/property_repository.dart';
-import '../../../data/cubits/slider_cubit.dart';
-import '../../../data/helper/widgets.dart';
-import '../../../data/model/data_output.dart';
 import '../../../data/model/home_slider.dart';
-import '../../../data/model/property_model.dart';
-import '../../../utils/Extensions/extensions.dart';
-import '../../../utils/helper_utils.dart';
-import '../../../utils/responsiveSize.dart';
-import '../../../utils/ui_utils.dart';
 import '../widgets/promoted_widget.dart';
 import 'home_screen.dart';
 
@@ -141,8 +129,13 @@ class _SliderWidgetState extends State<SliderWidget>
           );
         } catch (e) {
           Widgets.hideLoder(context);
-          HelperUtils.showSnackBarMessage(
-              context, UiUtils.translate(context, "somethingWentWrng"));
+
+          if (e is NoInternetConnectionError) {
+            HelperUtils.showSnackBarMessage(context, e.toString());
+          } else {
+            HelperUtils.showSnackBarMessage(
+                context, UiUtils.translate(context, "somethingWentWrng"));
+          }
         }
       },
       child: Padding(

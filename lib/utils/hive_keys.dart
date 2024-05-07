@@ -17,7 +17,6 @@ class HiveKeys {
   static const String isProfileCompleted = "isProfileCompleted";
   static String languageBox = "language";
   static String currentLanguageKey = "currentLanguage";
-
   static String themeBox = "themeBox";
   static String currentTheme = "currentTheme";
 

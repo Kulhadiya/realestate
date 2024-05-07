@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../Repositories/property_repository.dart';
 import '../../model/data_output.dart';
 import '../../model/property_model.dart';
+import '../../repositories/property_repository.dart';
 
 abstract class FetchMyPromotedPropertysState {}
 
@@ -123,6 +123,7 @@ class FetchMyPromotedPropertysCubit
     }
     return false;
   }
+
   void update(PropertyModel model) {
     if (state is FetchMyPromotedPropertysSuccess) {
       List<PropertyModel> properties =

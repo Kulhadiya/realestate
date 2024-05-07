@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../utils/ui_utils.dart';
-import '../proprties/AddProperyScreens/add_property_details.dart';
+import '../proprties/add_propery_screens/add_property_details.dart';
 
 abstract class ImagePickerValue<T> {
   abstract final T value;
