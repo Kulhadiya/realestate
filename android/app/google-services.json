@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "549786039909",
+    "project_id": "realestate-d4f5a",
+    "storage_bucket": "realestate-d4f5a.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:549786039909:android:daebd6629d200d588ff88c",
+        "android_client_info": {
+          "package_name": "com.ebroker.websutility"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAJNJ3x9nY2ATfnb3DlQWcjV6H_1w9hUhk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
